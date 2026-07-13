@@ -1,0 +1,14 @@
+# bucket-helper — pip requirements (portable, no `file://` deps).
+#
+# For a plain install:
+#     pip install -r requirements.txt
+#     pip install -e .           # bucket-helper itself (editable) or `pip install .`
+#
+# Optional surfaces (CLI/API/MCP) live behind extras, e.g. `.[cli]`, `.[api,mcp]`.
+# The os-helper pin is kept in lock-step with the release tag below.
+
+# --- Suite dependency -----------------------------------------------------
+os-helper>=1.4.2
+# --- Core runtime ---------------------------------------------------------
+boto3>=1.34,<2
+botocore>=1.34,<2

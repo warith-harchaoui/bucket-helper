@@ -1,0 +1,407 @@
+"""
+Bucket Helper — FastAPI HTTP surface.
+
+Exposes every public function in :mod:`bucket_helper.main` as an HTTP
+endpoint so ``bucket-helper`` can be dropped behind any reverse proxy
+and consumed by other services. Kept intentionally minimal:
+
+- Multipart uploads for the ``/upload`` endpoint (``UploadFile``),
+  streamed straight to a temporary file so large blobs don't blow up
+  memory.
+- ``FileResponse`` for ``/download`` — bytes stream straight from S3 to
+  the client with cleanup after the response is fully sent.
+- JSON responses for the CRUD reads (``/exists``, ``/list``, ``/tempfile``,
+  ``/strip-path``).
+- ``BackgroundTasks`` cleans temp files after the response has been
+  streamed — no leftover garbage on disk after a request.
+
+Credentials flow
+----------------
+Two ways to feed credentials to the API:
+
+- **Server-side default**: set ``BUCKET_HELPER_CONFIG`` in the process
+  env; every request loads the same credentials via
+  :func:`bucket_helper.credentials` (path or folder).
+- **Per-request**: send ``s3_access_key`` / ``s3_secret_key`` /
+  ``s3_bucket`` / ``s3_https`` (+ optional ``s3_endpoint_url``,
+  ``s3_region``, ``s3_prefix``, ``s3_use_path_style``, ``s3_verify_ssl``)
+  as form fields. Per-request wins over server default.
+
+Install the extra to get the runtime dependencies::
+
+    pip install 'bucket-helper[api]'
+
+Then run the app with any ASGI server::
+
+    uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000
+
+Usage Example
+-------------
+>>> # Start the server:
+>>> #   uvicorn bucket_helper.api:app --reload
+>>> # Probe existence (server-side default cred loaded from BUCKET_HELPER_CONFIG):
+>>> #   curl -F 'key=folder/obj.txt' http://localhost:8000/exists
+>>> # Upload a file (per-request cred inline, path-style MinIO):
+>>> #   curl -F 'file=@in.bin' -F 'key=folder/obj.bin' \\
+>>> #        -F 's3_access_key=minioadmin' -F 's3_secret_key=minioadmin' \\
+>>> #        -F 's3_bucket=uploads' -F 's3_https=http://minio.example.com:9000/uploads' \\
+>>> #        -F 's3_endpoint_url=http://minio.example.com:9000' \\
+>>> #        -F 's3_use_path_style=true' \\
+>>> #        http://localhost:8000/upload
+>>> # Full OpenAPI docs at http://localhost:8000/docs
+
+Author
+------
+Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+try:
+    from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+    from fastapi.responses import FileResponse, JSONResponse
+except ImportError as exc:  # pragma: no cover
+    raise ImportError(
+        "The FastAPI HTTP surface requires the [api] extra. "
+        "Install with: pip install 'bucket-helper[api]'"
+    ) from exc
+
+from . import (
+    credentials,
+    delete,
+    download,
+    exists,
+    list_prefix,
+    make_bucket,
+    remote_tempfile,
+    strip_s3_path,
+    upload,
+)
+
+
+# ---------------------------------------------------------------------------
+# App factory + shared plumbing
+# ---------------------------------------------------------------------------
+
+
+app = FastAPI(
+    title="Bucket Helper API",
+    description=(
+        "HTTP surface for the bucket-helper utilities: upload, download, "
+        "delete, exists, list, make-bucket, tempfile, strip-path. Works "
+        "against AWS S3 and any S3-compatible endpoint (MinIO, R2, B2, "
+        "Spaces, Wasabi)."
+    ),
+    version="0.2.2",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+
+# The set of credential keys the API accepts as form fields. Kept in
+# one place so every endpoint that mutates S3 uses the same schema.
+_CRED_FIELDS = (
+    "s3_access_key",
+    "s3_secret_key",
+    "s3_bucket",
+    "s3_https",
+    "s3_region",
+    "s3_endpoint_url",
+    "s3_prefix",
+    "s3_use_path_style",
+    "s3_verify_ssl",
+)
+
+
+def _resolve_cred(overrides: dict) -> dict:
+    """
+    Build the credentials dict for a single request.
+
+    Merging order (lowest → highest priority): server-side default
+    (loaded from ``BUCKET_HELPER_CONFIG``), then per-request form fields.
+    Empty / None values from the request do not override the server
+    defaults — so the client can send a partial override.
+
+    Parameters
+    ----------
+    overrides : dict
+        Per-request credential fields (form data).
+
+    Returns
+    -------
+    dict
+        Merged credentials dict, ready for the library.
+    """
+    # Start from the server-side default if configured.
+    base = {}
+    default_config = os.environ.get("BUCKET_HELPER_CONFIG")
+    if default_config:
+        try:
+            base = dict(credentials(default_config))
+        except Exception as exc:  # pragma: no cover — surface as 500
+            raise HTTPException(
+                status_code=500,
+                detail=f"Server default credentials failed to load: {exc}",
+            ) from exc
+
+    # Layer per-request overrides on top, skipping empty values so the
+    # client can send partial overrides without wiping defaults.
+    for k in _CRED_FIELDS:
+        v = overrides.get(k)
+        if v is not None and v != "":
+            base[k] = v
+
+    # Minimal sanity check — the library will re-check at call time but
+    # a fast fail here gives a nicer 400.
+    for required in ("s3_access_key", "s3_secret_key", "s3_bucket", "s3_https"):
+        if required not in base:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Missing credential '{required}'. Either set "
+                    "BUCKET_HELPER_CONFIG server-side or send the field with the request."
+                ),
+            )
+    return base
+
+
+def _spool(upload_file: UploadFile, dest_dir: Path) -> Path:
+    """
+    Persist an ``UploadFile`` to a temp path on disk.
+
+    We copy the stream instead of holding the bytes in memory so a
+    multi-hundred-MB blob does not OOM the worker. The file inherits
+    the caller's suffix when available so downstream tooling picks
+    the right content type.
+    """
+    ext = Path(upload_file.filename or "").suffix or ".bin"
+    out = dest_dir / f"upload{ext}"
+    with out.open("wb") as fp:
+        shutil.copyfileobj(upload_file.file, fp)
+    return out
+
+
+def _cleanup(*paths) -> None:
+    """Best-effort cleanup — never let a tidy-up failure kill a response."""
+    for p in paths:
+        try:
+            path = Path(p)
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            elif path.exists():
+                path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def _new_tmpdir() -> Path:
+    """Create a request-scoped temp directory under the system temp root."""
+    return Path(tempfile.mkdtemp(prefix="bucket-helper-"))
+
+
+# ---------------------------------------------------------------------------
+# Meta
+# ---------------------------------------------------------------------------
+
+
+@app.get("/health", tags=["meta"])
+def health() -> dict:
+    """Simple liveness probe — no dependency check, just proves the app is up."""
+    return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Mutations — upload / delete / make-bucket
+# ---------------------------------------------------------------------------
+
+
+@app.post("/upload", tags=["actions"])
+def upload_endpoint(
+    background: BackgroundTasks,
+    file: UploadFile = File(..., description="File to upload."),
+    key: Optional[str] = Form(None, description="Destination key or 's3://bucket/key' URI (empty = auto)."),
+    content_type: Optional[str] = Form(None, description="Override the S3 Content-Type header."),
+    # Per-request credentials (all optional — falls back to server default).
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """Upload a local file to S3. Returns the resulting ``s3://bucket/key`` URI."""
+    cred = _resolve_cred(locals())
+    tmp = _new_tmpdir()
+    try:
+        src = _spool(file, tmp)
+        uri = upload(local_path=str(src), cred=cred, s3_address=key or "", content_type=content_type)
+    finally:
+        # Small response, no need to defer cleanup.
+        _cleanup(tmp)
+    return JSONResponse({"s3_address": uri})
+
+
+@app.post("/delete", tags=["actions"])
+def delete_endpoint(
+    key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """Delete an S3 object (idempotent)."""
+    cred = _resolve_cred(locals())
+    delete(s3_address=key, cred=cred)
+    return JSONResponse({"deleted": key})
+
+
+@app.post("/make-bucket", tags=["actions"])
+def make_bucket_endpoint(
+    bucket: str = Form(..., description="Bucket name to create."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """Create a bucket. No-op if it already belongs to the caller."""
+    cred = _resolve_cred(locals())
+    make_bucket(bucket=bucket, cred=cred)
+    return JSONResponse({"bucket": bucket, "created": True})
+
+
+# ---------------------------------------------------------------------------
+# Reads — exists / list / download / tempfile / strip-path
+# ---------------------------------------------------------------------------
+
+
+@app.post("/exists", tags=["reads"])
+def exists_endpoint(
+    key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """Return ``{"exists": true|false}`` for the given key."""
+    cred = _resolve_cred(locals())
+    return JSONResponse({"exists": exists(s3_address=key, cred=cred)})
+
+
+@app.post("/list", tags=["reads"])
+def list_endpoint(
+    prefix: str = Form(..., description="Key prefix in the default bucket (may be empty)."),
+    max_keys: int = Form(1000, description="Cap on the number of returned keys."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """List keys under ``prefix`` in the default bucket."""
+    cred = _resolve_cred(locals())
+    keys = list_prefix(prefix=prefix, cred=cred, max_keys=max_keys)
+    return JSONResponse({"keys": keys, "count": len(keys)})
+
+
+@app.post("/download", tags=["reads"])
+def download_endpoint(
+    background: BackgroundTasks,
+    key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+):
+    """Download an S3 object; the file is streamed back and cleaned up after."""
+    cred = _resolve_cred(locals())
+    tmp = _new_tmpdir()
+    # Preserve the suffix — clients that stream the response benefit.
+    ext = Path(key).suffix or ".bin"
+    dst = tmp / f"download{ext}"
+    download(s3_address=key, local_path=str(dst), cred=cred)
+    # Clean the whole temp dir after the response has been sent.
+    background.add_task(_cleanup, tmp)
+    return FileResponse(
+        str(dst),
+        filename=Path(key).name or dst.name,
+        media_type="application/octet-stream",
+    )
+
+
+@app.post("/tempfile", tags=["reads"])
+def tempfile_endpoint(
+    ext: Optional[str] = Form(None, description="Extension for the generated name."),
+    prefix: Optional[str] = Form(None, description="Extra prefix under the default bucket."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """
+    Return ``{"s3_address": ..., "public_url": ...}`` for a fresh random key.
+
+    Does NOT upload anything. Since :func:`remote_tempfile` deletes the
+    key on exit and we never wrote anything to it, this is a pure name
+    generator — handy when the client wants to know *where* it will
+    write before doing the upload itself.
+    """
+    cred = _resolve_cred(locals())
+    with remote_tempfile(cred, ext=ext or "", prefix=prefix or "") as (addr, url):
+        payload = {"s3_address": addr, "public_url": url}
+    return JSONResponse(payload)
+
+
+@app.post("/strip-path", tags=["reads"])
+def strip_path_endpoint(
+    address: str = Form(..., description="Full 's3://bucket/key' URI or bare key."),
+    s3_access_key: Optional[str] = Form(None),
+    s3_secret_key: Optional[str] = Form(None),
+    s3_bucket: Optional[str] = Form(None),
+    s3_https: Optional[str] = Form(None),
+    s3_region: Optional[str] = Form(None),
+    s3_endpoint_url: Optional[str] = Form(None),
+    s3_prefix: Optional[str] = Form(None),
+    s3_use_path_style: Optional[str] = Form(None),
+    s3_verify_ssl: Optional[str] = Form(None),
+) -> JSONResponse:
+    """Return the key part of an ``s3://bucket/key`` address."""
+    cred = _resolve_cred(locals())
+    return JSONResponse({"key": strip_s3_path(address, cred)})
