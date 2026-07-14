@@ -12,6 +12,12 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+# Documentation
+
+[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
+
+[📋 Examples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
+
 # Installation
 
 **Prerequisites** — **Python 3.10–3.13** and **git**, cross-platform:

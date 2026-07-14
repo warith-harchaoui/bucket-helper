@@ -12,6 +12,12 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 
 [![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+# Documentation
+
+[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
+
+[📋 Exemples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
+
 # Installation
 
 **Prérequis** — **Python 3.10–3.13** et **git**, multiplateforme :
