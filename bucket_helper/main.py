@@ -41,24 +41,30 @@ Author
 Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 """
 
-import logging
+from __future__ import annotations
+
+import contextlib
 import os
 import secrets
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator, List, Optional, Tuple
 from urllib.parse import urlparse
 
 import boto3
 import botocore.exceptions
 import os_helper as osh
 
+# Diagnostics go through os-helper's logging surface (``osh.info`` /
+# ``osh.warning`` / ``osh.error``) rather than stdlib ``logging`` or bare
+# ``print(...)``. This is the suite-wide convention: verbosity is controlled
+# from one place across every AI-Helpers package, so callers tune it once.
 
 # ---------------------------------------------------------------------------
 # Credentials loader
 # ---------------------------------------------------------------------------
 
 
-def credentials(config_path: Optional[str] = None) -> dict:
+def credentials(config_path: str | None = None) -> dict:
     """
     Retrieve S3 credentials from a configuration file, folder, or environment.
 
@@ -99,8 +105,11 @@ def credentials(config_path: Optional[str] = None) -> dict:
     # MinIO endpoint can be configured the same way as the required keys
     # without having to reach into os.environ from the caller.
     for opt in (
-        "s3_region", "s3_endpoint_url", "s3_prefix",
-        "s3_use_path_style", "s3_verify_ssl",
+        "s3_region",
+        "s3_endpoint_url",
+        "s3_prefix",
+        "s3_use_path_style",
+        "s3_verify_ssl",
     ):
         if opt in cred:
             continue
@@ -125,7 +134,7 @@ def _truthy(value: object) -> bool:
 
 
 @contextmanager
-def get_client_s3(cred: dict) -> Iterator["boto3.client"]:
+def get_client_s3(cred: dict) -> Iterator[boto3.client]:
     """
     Open a boto3 S3 client honoring ``cred`` configuration.
 
@@ -170,11 +179,11 @@ def get_client_s3(cred: dict) -> Iterator["boto3.client"]:
         yield client
     finally:
         # boto3 clients are stateless wrt connections, but close the
-        # underlying urllib3 pool to be tidy.
-        try:
+        # underlying urllib3 pool to be tidy. Some boto3 versions raise on
+        # ``close()`` (a known quirk), so we swallow any error here — a
+        # failed tidy-up must never mask the caller's real work.
+        with contextlib.suppress(Exception):  # pragma: no cover — boto3 quirk
             client.close()
-        except Exception:  # pragma: no cover — boto3 quirk on some versions
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +191,7 @@ def get_client_s3(cred: dict) -> Iterator["boto3.client"]:
 # ---------------------------------------------------------------------------
 
 
-def _split_s3_address(s3_address: str, default_bucket: str) -> Tuple[str, str]:
+def _split_s3_address(s3_address: str, default_bucket: str) -> tuple[str, str]:
     """Normalise ``s3_address`` into ``(bucket, key)``.
 
     Accepted forms:
@@ -231,7 +240,9 @@ def exists(s3_address: str, cred: dict) -> bool:
             raise
 
 
-def upload(local_path: str, cred: dict, s3_address: str = "", content_type: Optional[str] = None) -> str:
+def upload(
+    local_path: str, cred: dict, s3_address: str = "", content_type: str | None = None
+) -> str:
     """
     Upload a local file to S3.
 
@@ -282,7 +293,7 @@ def upload(local_path: str, cred: dict, s3_address: str = "", content_type: Opti
         s3.upload_file(local_path, bucket, key, ExtraArgs=extra_args or None)
 
     uri = f"s3://{bucket}/{key}"
-    logging.info("S3 upload OK: %s → %s", local_path, uri)
+    osh.info("S3 upload OK: %s → %s", local_path, uri)
     return uri
 
 
@@ -299,8 +310,10 @@ def download(s3_address: str, local_path: str, cred: dict) -> str:
     with get_client_s3(cred) as s3:
         s3.download_file(bucket, key, local_path)
 
-    osh.checkfile(local_path, msg=f"Download failed (file missing or empty): {local_path}", check_empty=True)
-    logging.info("S3 download OK: s3://%s/%s → %s", bucket, key, local_path)
+    osh.checkfile(
+        local_path, msg=f"Download failed (file missing or empty): {local_path}", check_empty=True
+    )
+    osh.info("S3 download OK: s3://%s/%s → %s", bucket, key, local_path)
     return local_path
 
 
@@ -314,14 +327,12 @@ def delete(s3_address: str, cred: dict) -> bool:
         try:
             s3.delete_object(Bucket=bucket, Key=key)
         except botocore.exceptions.ClientError as err:
-            raise RuntimeError(
-                f"Failed to delete S3 object s3://{bucket}/{key}: {err}"
-            ) from err
-    logging.info("S3 delete OK: s3://%s/%s", bucket, key)
+            raise RuntimeError(f"Failed to delete S3 object s3://{bucket}/{key}: {err}") from err
+    osh.info("S3 delete OK: s3://%s/%s", bucket, key)
     return True
 
 
-def list_prefix(prefix: str, cred: dict, *, max_keys: int = 1000) -> List[str]:
+def list_prefix(prefix: str, cred: dict, *, max_keys: int = 1000) -> list[str]:
     """
     List the object keys under ``prefix`` in the default bucket.
 
@@ -330,7 +341,7 @@ def list_prefix(prefix: str, cred: dict, *, max_keys: int = 1000) -> List[str]:
     via boto3 directly with ``get_client_s3``.
     """
     bucket = cred["s3_bucket"]
-    keys: List[str] = []
+    keys: list[str] = []
     with get_client_s3(cred) as s3:
         paginator = s3.get_paginator("list_objects_v2")
         for page in paginator.paginate(
@@ -362,11 +373,11 @@ def make_bucket(bucket: str, cred: dict) -> None:
                     Bucket=bucket,
                     CreateBucketConfiguration={"LocationConstraint": region},
                 )
-            logging.info("S3 bucket created: %s (region=%s)", bucket, region)
+            osh.info("S3 bucket created: %s (region=%s)", bucket, region)
         except botocore.exceptions.ClientError as err:
             code = err.response.get("Error", {}).get("Code", "")
             if code in {"BucketAlreadyOwnedByYou", "BucketAlreadyExists"}:
-                logging.info("S3 bucket already exists: %s", bucket)
+                osh.info("S3 bucket already exists: %s", bucket)
                 return
             raise
 
@@ -382,7 +393,7 @@ def remote_tempfile(
     *,
     ext: str = "",
     prefix: str = "",
-) -> Iterator[Tuple[str, str]]:
+) -> Iterator[tuple[str, str]]:
     """
     Yield ``(s3_address, public_url)`` for a unique key, deleted on exit.
 
@@ -441,4 +452,4 @@ def remote_tempfile(
         try:
             delete(s3_address, cred)
         except Exception as err:  # pragma: no cover
-            logging.warning("S3 remote_tempfile cleanup failed for %s: %s", s3_address, err)
+            osh.warning("S3 remote_tempfile cleanup failed for %s: %s", s3_address, err)

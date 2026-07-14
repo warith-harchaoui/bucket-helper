@@ -7,7 +7,6 @@ behind the ``integration`` marker.
 """
 
 import json
-import os
 
 import pytest
 import yaml
@@ -17,7 +16,6 @@ import bucket_helper as bh
 # moto is in dev extras; if absent, skip the whole module gracefully.
 moto = pytest.importorskip("moto")
 from moto import mock_aws  # noqa: E402
-
 
 CRED_KEYS = {
     "s3_access_key": "AKIAFAKEFAKEFAKEFAKE",
@@ -184,11 +182,16 @@ def test_remote_tempfile_cleans_on_exception(s3_cred, tmp_path):
     src.write_text("hi")
 
     seen = {}
-    with pytest.raises(RuntimeError, match="boom"):
-        with bh.remote_tempfile(s3_cred, ext="txt") as (addr, _url):
-            bh.upload(str(src), s3_cred, addr)
-            seen["addr"] = addr
-            raise RuntimeError("boom")
+    # Combine the two context managers into one ``with`` (SIM117): we assert
+    # the body raises RuntimeError while inside the remote_tempfile block, so
+    # the auto-cleanup runs on the way out of the failing block.
+    with (
+        pytest.raises(RuntimeError, match="boom"),
+        bh.remote_tempfile(s3_cred, ext="txt") as (addr, _url),
+    ):
+        bh.upload(str(src), s3_cred, addr)
+        seen["addr"] = addr
+        raise RuntimeError("boom")
 
     assert bh.exists(seen["addr"], s3_cred) is False
 

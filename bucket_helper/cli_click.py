@@ -34,13 +34,14 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Callable
+from typing import Any
 
 try:
     import click
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
-        "The click CLI requires the [cli] extra. "
-        "Install with: pip install 'bucket-helper[cli]'"
+        "The click CLI requires the [cli] extra. Install with: pip install 'bucket-helper[cli]'"
     ) from exc
 
 # Same underlying functions as the argparse twin — one source of truth.
@@ -55,7 +56,6 @@ from . import (
     strip_s3_path,
     upload,
 )
-
 
 # ---------------------------------------------------------------------------
 # Top-level group
@@ -83,7 +83,21 @@ def cli() -> None:
 
 # Repeating the ``--config`` option across eight subcommands would be
 # noisy — we define it once as a decorator and apply it everywhere.
-def _config_option(f):
+def _config_option(f: Callable[..., Any]) -> Callable[..., Any]:
+    """Attach the shared ``--config`` click option to a command callback.
+
+    Parameters
+    ----------
+    f : callable
+        The click command callback to decorate.
+
+    Returns
+    -------
+    callable
+        The same callback with the ``--config`` option registered.
+    """
+    # Applying the decorator programmatically lets every subcommand share
+    # one definition of ``--config`` instead of repeating it eight times.
     return click.option(
         "--config",
         default=None,
@@ -104,8 +118,12 @@ def _config_option(f):
 
 @cli.command("upload")
 @_config_option
-@click.option("--input", "input_", required=True, type=click.Path(exists=True), help="Local file path.")
-@click.option("--key", default=None, help="Destination key or full 's3://bucket/key' URI (empty = auto).")
+@click.option(
+    "--input", "input_", required=True, type=click.Path(exists=True), help="Local file path."
+)
+@click.option(
+    "--key", default=None, help="Destination key or full 's3://bucket/key' URI (empty = auto)."
+)
 @click.option(
     "--content-type",
     default=None,

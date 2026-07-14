@@ -25,7 +25,6 @@ click = pytest.importorskip("click")
 
 from click.testing import CliRunner  # noqa: E402
 
-
 # The canonical list of subcommands both CLIs must expose. Kept as a
 # module-level constant so a drift in either surface is caught by both
 # the argparse and click parametrised tests.

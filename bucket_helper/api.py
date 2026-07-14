@@ -61,7 +61,6 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 try:
     from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
@@ -83,7 +82,6 @@ from . import (
     strip_s3_path,
     upload,
 )
-
 
 # ---------------------------------------------------------------------------
 # App factory + shared plumbing
@@ -225,27 +223,34 @@ def health() -> dict:
 def upload_endpoint(
     background: BackgroundTasks,
     file: UploadFile = File(..., description="File to upload."),
-    key: Optional[str] = Form(None, description="Destination key or 's3://bucket/key' URI (empty = auto)."),
-    content_type: Optional[str] = Form(None, description="Override the S3 Content-Type header."),
+    key: str | None = Form(
+        None, description="Destination key or 's3://bucket/key' URI (empty = auto)."
+    ),
+    content_type: str | None = Form(None, description="Override the S3 Content-Type header."),
     # Per-request credentials (all optional — falls back to server default).
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """Upload a local file to S3. Returns the resulting ``s3://bucket/key`` URI."""
+    # Merge server-default + per-request credentials once, up front.
     cred = _resolve_cred(locals())
+    # Spool the multipart body to a temp dir first: boto3 wants a real path
+    # on disk, and streaming avoids holding a large blob in memory.
     tmp = _new_tmpdir()
     try:
         src = _spool(file, tmp)
-        uri = upload(local_path=str(src), cred=cred, s3_address=key or "", content_type=content_type)
+        uri = upload(
+            local_path=str(src), cred=cred, s3_address=key or "", content_type=content_type
+        )
     finally:
-        # Small response, no need to defer cleanup.
+        # Small response, no need to defer cleanup — wipe the temp dir now.
         _cleanup(tmp)
     return JSONResponse({"s3_address": uri})
 
@@ -253,17 +258,19 @@ def upload_endpoint(
 @app.post("/delete", tags=["actions"])
 def delete_endpoint(
     key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """Delete an S3 object (idempotent)."""
+    # Resolve credentials, then dispatch straight to the library — S3's
+    # delete is idempotent, so no "not found" special-casing is needed.
     cred = _resolve_cred(locals())
     delete(s3_address=key, cred=cred)
     return JSONResponse({"deleted": key})
@@ -272,17 +279,20 @@ def delete_endpoint(
 @app.post("/make-bucket", tags=["actions"])
 def make_bucket_endpoint(
     bucket: str = Form(..., description="Bucket name to create."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """Create a bucket. No-op if it already belongs to the caller."""
+    # We always report ``created: True`` even on the idempotent no-op path:
+    # the library treats "already owned by you" as success, so from the
+    # caller's point of view the bucket now exists either way.
     cred = _resolve_cred(locals())
     make_bucket(bucket=bucket, cred=cred)
     return JSONResponse({"bucket": bucket, "created": True})
@@ -296,17 +306,18 @@ def make_bucket_endpoint(
 @app.post("/exists", tags=["reads"])
 def exists_endpoint(
     key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """Return ``{"exists": true|false}`` for the given key."""
+    # Pure read: resolve creds, probe existence, hand back a JSON bool.
     cred = _resolve_cred(locals())
     return JSONResponse({"exists": exists(s3_address=key, cred=cred)})
 
@@ -315,17 +326,19 @@ def exists_endpoint(
 def list_endpoint(
     prefix: str = Form(..., description="Key prefix in the default bucket (may be empty)."),
     max_keys: int = Form(1000, description="Cap on the number of returned keys."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """List keys under ``prefix`` in the default bucket."""
+    # Resolve creds, page through the prefix, and return the keys plus a
+    # convenience count so clients don't have to len() the list themselves.
     cred = _resolve_cred(locals())
     keys = list_prefix(prefix=prefix, cred=cred, max_keys=max_keys)
     return JSONResponse({"keys": keys, "count": len(keys)})
@@ -335,24 +348,26 @@ def list_endpoint(
 def download_endpoint(
     background: BackgroundTasks,
     key: str = Form(..., description="'s3://bucket/key' URI or bare key."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ):
     """Download an S3 object; the file is streamed back and cleaned up after."""
+    # Stage the object on disk first, then let FileResponse stream it out.
     cred = _resolve_cred(locals())
     tmp = _new_tmpdir()
     # Preserve the suffix — clients that stream the response benefit.
     ext = Path(key).suffix or ".bin"
     dst = tmp / f"download{ext}"
     download(s3_address=key, local_path=str(dst), cred=cred)
-    # Clean the whole temp dir after the response has been sent.
+    # Defer cleanup to a background task: the file must still exist while
+    # FileResponse streams it, so we can only wipe it once the response is sent.
     background.add_task(_cleanup, tmp)
     return FileResponse(
         str(dst),
@@ -363,17 +378,17 @@ def download_endpoint(
 
 @app.post("/tempfile", tags=["reads"])
 def tempfile_endpoint(
-    ext: Optional[str] = Form(None, description="Extension for the generated name."),
-    prefix: Optional[str] = Form(None, description="Extra prefix under the default bucket."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    ext: str | None = Form(None, description="Extension for the generated name."),
+    prefix: str | None = Form(None, description="Extra prefix under the default bucket."),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """
     Return ``{"s3_address": ..., "public_url": ...}`` for a fresh random key.
@@ -384,6 +399,9 @@ def tempfile_endpoint(
     write before doing the upload itself.
     """
     cred = _resolve_cred(locals())
+    # Enter and immediately leave the context manager: we only want the
+    # generated (address, url) pair. Nothing is uploaded, so the auto-delete
+    # on exit is a harmless no-op against a key that was never written.
     with remote_tempfile(cred, ext=ext or "", prefix=prefix or "") as (addr, url):
         payload = {"s3_address": addr, "public_url": url}
     return JSONResponse(payload)
@@ -392,15 +410,15 @@ def tempfile_endpoint(
 @app.post("/strip-path", tags=["reads"])
 def strip_path_endpoint(
     address: str = Form(..., description="Full 's3://bucket/key' URI or bare key."),
-    s3_access_key: Optional[str] = Form(None),
-    s3_secret_key: Optional[str] = Form(None),
-    s3_bucket: Optional[str] = Form(None),
-    s3_https: Optional[str] = Form(None),
-    s3_region: Optional[str] = Form(None),
-    s3_endpoint_url: Optional[str] = Form(None),
-    s3_prefix: Optional[str] = Form(None),
-    s3_use_path_style: Optional[str] = Form(None),
-    s3_verify_ssl: Optional[str] = Form(None),
+    s3_access_key: str | None = Form(None),
+    s3_secret_key: str | None = Form(None),
+    s3_bucket: str | None = Form(None),
+    s3_https: str | None = Form(None),
+    s3_region: str | None = Form(None),
+    s3_endpoint_url: str | None = Form(None),
+    s3_prefix: str | None = Form(None),
+    s3_use_path_style: str | None = Form(None),
+    s3_verify_ssl: str | None = Form(None),
 ) -> JSONResponse:
     """Return the key part of an ``s3://bucket/key`` address."""
     cred = _resolve_cred(locals())

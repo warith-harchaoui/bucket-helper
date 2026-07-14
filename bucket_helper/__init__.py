@@ -30,6 +30,8 @@ Author
 Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 """
 
+from __future__ import annotations
+
 __author__ = "Warith Harchaoui, Ph.D."
 __email__ = "warithmetics@deraison.ai"
 

@@ -72,6 +72,18 @@ from . import (
 
 
 def _load_cred(ns: argparse.Namespace) -> dict:
+    """Load the credentials dict for a parsed CLI invocation.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; only ``ns.config`` is read here.
+
+    Returns
+    -------
+    dict
+        Credentials from :func:`bucket_helper.credentials`.
+    """
     # ``config`` is optional. If missing we let :func:`credentials` fall
     # back to environment variables / .env — that is how the library
     # itself behaves.
@@ -124,6 +136,18 @@ def _emit(text: str) -> None:
 
 
 def _handle_upload(ns: argparse.Namespace) -> int:
+    """Handle ``upload``: send a local file and print its ``s3://`` URI.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``input`` / ``key`` / ``content_type``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # upload() returns the s3:// URI of the uploaded object.
     cred = _load_cred(ns)
     uri = upload(
@@ -138,6 +162,18 @@ def _handle_upload(ns: argparse.Namespace) -> int:
 
 
 def _handle_download(ns: argparse.Namespace) -> int:
+    """Handle ``download``: fetch an object and print the local path.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``key`` / ``output``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # download() returns the local_path on success.
     cred = _load_cred(ns)
     out = download(s3_address=ns.key, local_path=ns.output, cred=cred)
@@ -146,6 +182,18 @@ def _handle_download(ns: argparse.Namespace) -> int:
 
 
 def _handle_delete(ns: argparse.Namespace) -> int:
+    """Handle ``delete``: remove an object (idempotent).
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``key``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # delete() is idempotent and always returns True on success.
     cred = _load_cred(ns)
     delete(s3_address=ns.key, cred=cred)
@@ -153,6 +201,18 @@ def _handle_delete(ns: argparse.Namespace) -> int:
 
 
 def _handle_exists(ns: argparse.Namespace) -> int:
+    """Handle ``exists``: print ``true``/``false`` and mirror it in the exit code.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``key``).
+
+    Returns
+    -------
+    int
+        ``0`` if the object exists, ``1`` otherwise — so shell ``if`` works.
+    """
     # exists() returns a bool — map to process exit code 0/1 so shell
     # `if bucket-helper exists ...; then ...; fi` works naturally.
     cred = _load_cred(ns)
@@ -162,6 +222,18 @@ def _handle_exists(ns: argparse.Namespace) -> int:
 
 
 def _handle_list(ns: argparse.Namespace) -> int:
+    """Handle ``list``: print each key under a prefix, one per line.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``prefix`` / ``max_keys``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # list_prefix() returns a list of keys — emit them one per line so
     # shell pipelines can `xargs -n 1` over the result.
     cred = _load_cred(ns)
@@ -172,6 +244,18 @@ def _handle_list(ns: argparse.Namespace) -> int:
 
 
 def _handle_make_bucket(ns: argparse.Namespace) -> int:
+    """Handle ``make-bucket``: create a bucket (no-op if already owned).
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``bucket``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # make_bucket() is idempotent when the bucket already belongs to us.
     cred = _load_cred(ns)
     make_bucket(bucket=ns.bucket, cred=cred)
@@ -179,6 +263,18 @@ def _handle_make_bucket(ns: argparse.Namespace) -> int:
 
 
 def _handle_tempfile(ns: argparse.Namespace) -> int:
+    """Handle ``tempfile``: print a fresh ``{s3_address, public_url}`` JSON pair.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``ext`` / ``prefix``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success). Nothing is uploaded.
+    """
     # remote_tempfile is a context manager: we enter it, print the key +
     # url pair, then exit immediately. Since no object was uploaded inside
     # the block, the auto-cleanup is a no-op (delete of a missing key is
@@ -192,6 +288,18 @@ def _handle_tempfile(ns: argparse.Namespace) -> int:
 
 
 def _handle_strip_path(ns: argparse.Namespace) -> int:
+    """Handle ``strip-path``: print the key part of an ``s3://`` address.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed args (``config`` / ``address``).
+
+    Returns
+    -------
+    int
+        Process exit code (``0`` on success).
+    """
     # strip_s3_path() returns the key part of an s3:// address (or of a
     # bare key). Handy in shell pipelines.
     cred = _load_cred(ns)
@@ -209,6 +317,13 @@ def _handle_strip_path(ns: argparse.Namespace) -> int:
 
 
 def _add_common_config(p: argparse.ArgumentParser) -> None:
+    """Attach the shared ``--config`` option to a subparser.
+
+    Parameters
+    ----------
+    p : argparse.ArgumentParser
+        The subparser to extend in place.
+    """
     # Every subcommand needs the config path.
     p.add_argument(
         "--config",
@@ -218,6 +333,7 @@ def _add_common_config(p: argparse.ArgumentParser) -> None:
 
 
 def _add_upload(sub: argparse._SubParsersAction) -> None:
+    """Register the ``upload`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("upload", help="Upload a local file to S3.")
     _add_common_config(p)
     p.add_argument("--input", required=True, help="Local file path.")
@@ -237,31 +353,47 @@ def _add_upload(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_download(sub: argparse._SubParsersAction) -> None:
+    """Register the ``download`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("download", help="Download an S3 object to a local path.")
     _add_common_config(p)
-    p.add_argument("--key", required=True, help="Source — 's3://bucket/key' or a key under the default bucket.")
+    p.add_argument(
+        "--key", required=True, help="Source — 's3://bucket/key' or a key under the default bucket."
+    )
     p.add_argument("--output", required=True, help="Destination local file path.")
     p.set_defaults(func=_handle_download)
 
 
 def _add_delete(sub: argparse._SubParsersAction) -> None:
+    """Register the ``delete`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("delete", help="Delete an S3 object (idempotent).")
     _add_common_config(p)
-    p.add_argument("--key", required=True, help="Object address — 's3://bucket/key' or a key under the default bucket.")
+    p.add_argument(
+        "--key",
+        required=True,
+        help="Object address — 's3://bucket/key' or a key under the default bucket.",
+    )
     p.set_defaults(func=_handle_delete)
 
 
 def _add_exists(sub: argparse._SubParsersAction) -> None:
+    """Register the ``exists`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("exists", help="Return exit code 0 if the object exists, 1 otherwise.")
     _add_common_config(p)
-    p.add_argument("--key", required=True, help="Object address — 's3://bucket/key' or a key under the default bucket.")
+    p.add_argument(
+        "--key",
+        required=True,
+        help="Object address — 's3://bucket/key' or a key under the default bucket.",
+    )
     p.set_defaults(func=_handle_exists)
 
 
 def _add_list(sub: argparse._SubParsersAction) -> None:
+    """Register the ``list`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("list", help="List keys under a prefix in the default bucket.")
     _add_common_config(p)
-    p.add_argument("--prefix", required=True, help="Key prefix (e.g. 'uploads/' or empty for root).")
+    p.add_argument(
+        "--prefix", required=True, help="Key prefix (e.g. 'uploads/' or empty for root)."
+    )
     p.add_argument(
         "--max-keys",
         type=int,
@@ -273,6 +405,7 @@ def _add_list(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_make_bucket(sub: argparse._SubParsersAction) -> None:
+    """Register the ``make-bucket`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("make-bucket", help="Create a bucket (no-op if it already exists).")
     _add_common_config(p)
     p.add_argument("--bucket", required=True, help="Bucket name to create.")
@@ -280,17 +413,25 @@ def _add_make_bucket(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_tempfile(sub: argparse._SubParsersAction) -> None:
+    """Register the ``tempfile`` subcommand and its flags on ``sub``."""
     p = sub.add_parser(
         "tempfile",
         help="Emit a unique random key + public URL (JSON). Does NOT upload anything.",
     )
     _add_common_config(p)
-    p.add_argument("--ext", default=None, help="File extension for the generated name (with or without leading dot).")
-    p.add_argument("--prefix", default=None, help="Extra prefix path under the bucket / default prefix.")
+    p.add_argument(
+        "--ext",
+        default=None,
+        help="File extension for the generated name (with or without leading dot).",
+    )
+    p.add_argument(
+        "--prefix", default=None, help="Extra prefix path under the bucket / default prefix."
+    )
     p.set_defaults(func=_handle_tempfile)
 
 
 def _add_strip_path(sub: argparse._SubParsersAction) -> None:
+    """Register the ``strip-path`` subcommand and its flags on ``sub``."""
     p = sub.add_parser("strip-path", help="Extract the key part of an 's3://bucket/key' address.")
     _add_common_config(p)
     p.add_argument("--address", required=True, help="Full 's3://bucket/key' URI or a bare key.")
