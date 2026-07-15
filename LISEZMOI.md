@@ -1,8 +1,8 @@
 # Bucket Helper
 
-[🇫🇷](LISEZMOI.md) · [🇬🇧](README.md)
+[🇫🇷](https://github.com/warith-harchaoui/bucket-helper/blob/main/LISEZMOI.md) · [🇬🇧](https://github.com/warith-harchaoui/bucket-helper/blob/main/README.md)
 
-[![CI](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#)
+[![CI](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#)
 
 `Bucket Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
@@ -10,15 +10,15 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
-[![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
-# Documentation
+## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
 
 [📋 Exemples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
-# Installation
+## Installation
 
 **Prérequis** — **Python 3.10–3.13** et **git**, multiplateforme :
 
@@ -26,39 +26,44 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git`
 
-Puis installer le paquet :
+Nous recommandons d'utiliser des environnements Python. Consultez ce lien si vous ne savez pas en créer un : [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
 
-
-```bash
-pip install --force-reinstall --no-cache-dir git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2
-```
-
-Extras optionnels — installez ce dont vous avez besoin :
+### Depuis PyPI (recommandé)
 
 ```bash
-# La CLI argparse est toujours disponible. Ajoutez la variante click :
-pip install 'bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
+# Bibliothèque principale (loader credentials + CRUD + remote_tempfile)
+pip install bucket-helper
 
-# Serveur HTTP (FastAPI + uvicorn + python-multipart) :
-pip install 'bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
-
-# Outils MCP (fastapi-mcp) — nécessite la plomberie [api] :
-pip install 'bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
+# Surfaces optionnelles
+pip install "bucket-helper[cli]"       # variante CLI click
+pip install "bucket-helper[api]"       # surface HTTP FastAPI
+pip install "bucket-helper[api,mcp]"   # outils MCP au-dessus de FastAPI
 ```
 
-# Configuration
+### Depuis les sources (sans PyPI)
 
-Un template prêt-à-remplir est committé dans [`s3_config.json.example`](s3_config.json.example). Copiez-le en `s3_config.json` et éditez-le sur place — les vrais `*config.json` sont gitignored donc impossible de committer des secrets par accident :
+```bash
+# Bibliothèque principale
+pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+
+# Surfaces optionnelles
+pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+```
+
+La CLI argparse est toujours disponible. L'extra `[cli]` ajoute la variante click.
+
+## Configuration
+
+Un template prêt-à-remplir est committé dans [`s3_config.json.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/s3_config.json.example). Copiez-le en `s3_config.json` et éditez-le sur place — les vrais `*config.json` sont gitignored donc impossible de committer des secrets par accident :
 
 ```bash
 cp s3_config.json.example s3_config.json
 # puis éditez s3_config.json avec vos identifiants AWS / MinIO / R2 / B2
 ```
 
-Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env`, ou définir des variables d'environnement — `bucket-helper` essaie dans cet ordre via `os_helper.get_config`.
-
-
-Écrivez un `s3_config.json`, un `s3_config.yaml`, un `.env`, ou utilisez des variables d'environnement. Clés requises :
+Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env`, ou définir des variables d'environnement — `bucket-helper` essaie dans cet ordre via `os_helper.get_config`. Clés requises :
 
 ```json
 {
@@ -92,9 +97,9 @@ Mettez `s3_endpoint_url` à :
 | **Backblaze B2 (API S3)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
 
-# Utilisation
+## Utilisation
 
-Pour le catalogue complet d'exemples (uploads / téléchargements / listages, endpoints S3-compatibles — MinIO / R2 / B2 / Spaces / Wasabi, clés distantes temporaires avec auto-nettoyage, miroir avec sftp-helper), voir [📋 EXAMPLES.md](EXAMPLES.md).
+Pour le catalogue complet d'exemples (uploads / téléchargements / listages, endpoints S3-compatibles — MinIO / R2 / B2 / Spaces / Wasabi, clés distantes temporaires avec auto-nettoyage, miroir avec sftp-helper), voir [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
 
 ```python
 import bucket_helper as bh
@@ -153,7 +158,7 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 # L'objet n'existe plus ici, pas de nettoyage manuel.
 ```
 
-# Exposition multi-surfaces
+## Exposition multi-surfaces
 
 Chaque fonction publique de la bibliothèque est aussi exposée en :
 
@@ -205,11 +210,17 @@ docker run --rm -p 8000:8000 \
   bucket-helper
 ```
 
-Voir aussi : [LANDSCAPE.md](LANDSCAPE.md) (positionnement compétitif) et
-[GUI.md](GUI.md) (plan produit visuel).
+Voir aussi : [LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (positionnement compétitif) et
+[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (plan produit visuel).
 
-# Auteur
+## Auteur
+
  - [Warith HARCHAOUI](https://linkedin.com/in/warith-harchaoui)
 
-# Remerciements
+## Remerciements
+
 Remerciements chaleureux à [Mohamed Chelali](https://mchelali.github.io) et [Bachir Zerroug](https://www.linkedin.com/in/bachirzerroug) pour nos échanges fructueux.
+
+## Licence
+
+Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](LICENSE) pour les détails.

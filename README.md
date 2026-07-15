@@ -12,13 +12,13 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
-# Documentation
+## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
 
 [📋 Examples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
-# Installation
+## Installation
 
 **Prerequisites** — **Python 3.10–3.13** and **git**, cross-platform:
 
@@ -26,27 +26,35 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 - 🐧 **Ubuntu/Debian**: `sudo apt update && sudo apt install -y python3 python3-pip git`
 - 🪟 **Windows** (PowerShell): `winget install Python.Python.3.12 Git.Git`
 
-Then install the package:
+We recommend using Python environments. Check this link if you're unfamiliar with setting one up: [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
 
-
-```bash
-pip install --force-reinstall --no-cache-dir git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2
-```
-
-Optional extras — pick what you need:
+### From PyPI (recommended)
 
 ```bash
-# argparse CLI is always available. Add the click twin:
-pip install 'bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
+# Core library (credentials loader + CRUD + remote_tempfile)
+pip install bucket-helper
 
-# HTTP server (FastAPI + uvicorn + python-multipart):
-pip install 'bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
-
-# MCP tools (fastapi-mcp) — requires the [api] plumbing:
-pip install 'bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.2'
+# Optional surfaces
+pip install "bucket-helper[cli]"       # click-based CLI twin
+pip install "bucket-helper[api]"       # FastAPI HTTP surface
+pip install "bucket-helper[api,mcp]"   # MCP tools over FastAPI
 ```
 
-# Configuration
+### From source (no PyPI)
+
+```bash
+# Core library
+pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+
+# Optional surfaces
+pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+```
+
+The argparse CLI is always available. The `[cli]` extra adds the click twin.
+
+## Configuration
 
 A ready-to-fill template is committed at [`s3_config.json.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/s3_config.json.example). Copy it to `s3_config.json` and edit in place — real `*config.json` files are gitignored so you cannot accidentally commit secrets:
 
@@ -89,7 +97,7 @@ Set `s3_endpoint_url` to:
 | **Backblaze B2 (S3 API)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
 
-# Usage
+## Usage
 
 For the full catalog of recipes (uploads / downloads / listings, S3-compatible endpoints — MinIO / R2 / B2 / Spaces / Wasabi, temporary remote keys with auto-cleanup, mirroring with sftp-helper), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
 
@@ -152,7 +160,7 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 # Object is gone here, no manual cleanup.
 ```
 
-# Multi-surface exposure
+## Multi-surface exposure
 
 Every public function in the library is also exposed as:
 
@@ -207,8 +215,14 @@ docker run --rm -p 8000:8000 \
 See also: [LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning) and
 [GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan).
 
-# Author
+## Author
+
  - [Warith HARCHAOUI](https://linkedin.com/in/warith-harchaoui)
 
-# Acknowledgements
+## Acknowledgements
+
 Special thanks to [Mohamed Chelali](https://mchelali.github.io) and [Bachir Zerroug](https://www.linkedin.com/in/bachirzerroug) for fruitful discussions.
+
+## License
+
+This project is licensed under the BSD-3-Clause License — see the [LICENSE](LICENSE) file for details.
