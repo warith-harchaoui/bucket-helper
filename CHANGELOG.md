@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-07-20
+
+### Changed
+
+- **Upload and download now show a progress bar.** `upload` and `download` wire
+  boto3's transfer `Callback` into the shared `os_helper.progress_bar` (byte
+  scaled, ETA, auto-quiet on a non-TTY), so moving a large object gives live
+  feedback instead of a silent stall. Download reads the object size via a cheap
+  `head_object` for the bar total (falls back to open-ended if HEAD is denied).
+  Requires `os-helper>=1.5.3`.
+
 ## [0.2.4] - 2026-07-15
 
 ### Documentation

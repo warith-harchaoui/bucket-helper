@@ -289,8 +289,14 @@ def upload(
     if content_type is not None:
         extra_args["ContentType"] = content_type
 
-    with get_client_s3(cred) as s3:
-        s3.upload_file(local_path, bucket, key, ExtraArgs=extra_args or None)
+    # Stream with the shared suite progress bar (byte-scaled, auto-quiet on a
+    # non-TTY). boto3 invokes the Callback with the byte delta per part, which is
+    # exactly what ``tqdm.update`` expects — so ``bar.update`` wires in directly.
+    size = osh.size_file(local_path)
+    with get_client_s3(cred) as s3, osh.progress_bar(total=size, desc=key) as bar:
+        s3.upload_file(
+            local_path, bucket, key, ExtraArgs=extra_args or None, Callback=bar.update
+        )
 
     uri = f"s3://{bucket}/{key}"
     osh.info("S3 upload OK: %s → %s", local_path, uri)
@@ -308,7 +314,14 @@ def download(s3_address: str, local_path: str, cred: dict) -> str:
         osh.make_directory(parent)
 
     with get_client_s3(cred) as s3:
-        s3.download_file(bucket, key, local_path)
+        # Cheap metadata call for the bar's total; fall back to an open-ended bar
+        # if HEAD is denied. boto3's Callback delta feeds ``tqdm.update`` directly.
+        try:
+            size = s3.head_object(Bucket=bucket, Key=key).get("ContentLength")
+        except botocore.exceptions.ClientError:
+            size = None
+        with osh.progress_bar(total=size, desc=key) as bar:
+            s3.download_file(bucket, key, local_path, Callback=bar.update)
 
     osh.checkfile(
         local_path, msg=f"Download failed (file missing or empty): {local_path}", check_empty=True
