@@ -2,8 +2,8 @@
 
 This is the user-facing, exhaustive catalogue of what `bucket-helper` can do and
 the natural-language phrasings, commands, functions, and address cues that
-should invoke it — whether you call it yourself or drive it as a Claude /
-OpenCode **skill** (see [`skills/bucket-helper/SKILL.md`](skills/bucket-helper/SKILL.md)
+should invoke it — whether you call it yourself or drive it as a
+Claude Code / OpenCode **skill** (see [`skills/bucket-helper/SKILL.md`](skills/bucket-helper/SKILL.md)
 and its [`references/triggers.md`](skills/bucket-helper/references/triggers.md)).
 
 `bucket-helper` moves files to and from **AWS S3 and any S3-compatible object
