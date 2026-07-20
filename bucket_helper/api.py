@@ -60,6 +60,8 @@ from __future__ import annotations
 import os
 import shutil
 import tempfile
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 from pathlib import Path
 
 try:
@@ -88,6 +90,20 @@ from . import (
 # ---------------------------------------------------------------------------
 
 
+# Resolve the OpenAPI ``version`` from the installed package metadata so it
+# tracks ``pyproject.toml`` automatically and never drifts to a stale literal.
+# ``PackageNotFoundError`` covers the "running from a source tree with no
+# installed dist" case; a broad fallback keeps app import robust even if metadata
+# resolution misbehaves in some packaging edge case — a missing version string
+# must never stop the API from booting.
+try:
+    _API_VERSION = _pkg_version("bucket-helper")
+except PackageNotFoundError:  # pragma: no cover — source-tree / uninstalled run
+    _API_VERSION = "0"
+except Exception:  # pragma: no cover — never fatal on any packaging quirk
+    _API_VERSION = "0"
+
+
 app = FastAPI(
     title="Bucket Helper API",
     description=(
@@ -96,7 +112,7 @@ app = FastAPI(
         "against AWS S3 and any S3-compatible endpoint (MinIO, R2, B2, "
         "Spaces, Wasabi)."
     ),
-    version="0.2.2",
+    version=_API_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
 )

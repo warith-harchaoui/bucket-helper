@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-20
+
+### Added
+
+- **Agent skill (Claude + OpenCode).** New `skills/bucket-helper/` package with a
+  trigger-rich `SKILL.md` (third-person description, exhaustive enforced TRIGGER
+  clause + SKIP rules) and progressive-disclosure `references/`
+  (`cli-reference.md`, `surfaces.md`, `triggers.md`), plus `skills/README.md`
+  with symlink install steps for both `~/.claude/skills/` and
+  `~/.opencode/skills/`. Lets an AI agent discover and drive the toolkit without
+  the user opening a terminal.
+- **Root `TRIGGERS.md`.** User-facing, auditable catalogue of the phrasings,
+  commands, functions, and `s3://` / endpoint cues that invoke bucket-helper,
+  with explicit SKIP boundaries (non-S3 clouds, SFTP → sftp-helper, tree sync →
+  rclone / `aws s3 sync`, presigned URLs / bucket config → boto3). Referenced
+  from README and LISEZMOI.
+
+### Changed
+
+- **FastAPI OpenAPI `version` now resolves from installed package metadata**
+  (`importlib.metadata.version`) instead of a hardcoded literal, so it tracks
+  `pyproject.toml` and no longer drifts (was stuck at `0.2.2`).
+- README and LISEZMOI gain Skills + Triggers navigation; source-install pins
+  refreshed to `v0.3.0`.
+
+### Notes
+
+- No GUI and no local-first badge — by design. bucket-helper moves data to
+  *remote* object storage, so a local-first claim would be misleading.
+- Public API unchanged and fully backward-compatible.
+
 ## [0.2.5] - 2026-07-20
 
 ### Changed

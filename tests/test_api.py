@@ -62,6 +62,22 @@ def test_openapi_lists_expected_endpoints(client):
     assert expected.issubset(set(paths.keys()))
 
 
+def test_openapi_version_matches_package_metadata(client):
+    """The OpenAPI ``info.version`` should track the installed package version.
+
+    The app resolves its version from ``importlib.metadata`` rather than a
+    hardcoded literal, so this guards against the old drift (the spec was once
+    frozen at ``0.2.2`` while the package moved on).
+    """
+    from importlib.metadata import version
+
+    r = client.get("/openapi.json")
+    assert r.status_code == 200
+    # In an editable/installed test env the package metadata is available; the
+    # OpenAPI spec must echo exactly that string.
+    assert r.json()["info"]["version"] == version("bucket-helper")
+
+
 def test_docs_endpoint_is_served(client):
     """``/docs`` should serve the Swagger UI landing HTML."""
     r = client.get("/docs")

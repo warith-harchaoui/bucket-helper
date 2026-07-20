@@ -18,6 +18,8 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 
 [📋 Examples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
+[🎯 Triggers](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) · [🧩 Agent skill](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md)
+
 ## Installation
 
 **Prerequisites** — **Python 3.10–3.13** and **git**, cross-platform:
@@ -44,12 +46,12 @@ pip install "bucket-helper[api,mcp]"   # MCP tools over FastAPI
 
 ```bash
 # Core library
-pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
 
 # Optional surfaces
-pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
-pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
-pip install "bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.2.4"
+pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
+pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
+pip install "bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
 ```
 
 The argparse CLI is always available. The `[cli]` extra adds the click twin.
@@ -171,6 +173,25 @@ Every public function in the library is also exposed as:
 
 Both CLIs share the same subcommand names and flags — pick your favourite.
 
+## Agent skill (Claude / OpenCode)
+
+`bucket-helper` ships as a discoverable **Claude Skill** *and* **OpenCode skill**
+under [`skills/bucket-helper/`](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/bucket-helper/SKILL.md),
+so an AI agent can run object-storage operations for you without you opening a
+terminal. Install it by symlinking:
+
+```bash
+ln -sfn "$PWD/skills/bucket-helper" ~/.claude/skills/bucket-helper     # Claude Code / Desktop
+ln -sfn "$PWD/skills/bucket-helper" ~/.opencode/skills/bucket-helper   # OpenCode
+```
+
+The exhaustive catalogue of what triggers the toolkit — natural-language
+phrasings, commands, functions, address cues, and explicit SKIP rules — lives in
+[TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md)
+(mirrored in the skill's `references/triggers.md`). See
+[skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md)
+for install details.
+
 ## CLI examples
 
 ```bash
@@ -212,8 +233,10 @@ docker run --rm -p 8000:8000 \
   bucket-helper
 ```
 
-See also: [LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning) and
-[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan).
+See also: [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (what invokes the toolkit),
+[skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (agent skill install),
+[LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning) and
+[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan — no GUI ships; bucket-helper is remote object-storage plumbing).
 
 ## Author
 
