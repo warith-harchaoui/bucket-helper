@@ -236,8 +236,7 @@ docker run --rm -p 8000:8000 \
 ```
 
 See also: [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (what invokes the toolkit),
-[skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (agent skill install),
-[LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning with a positioning map) and
+[skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (agent skill install) and
 [GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan — no GUI ships; bucket-helper is remote object-storage plumbing).
 
 ## Author
