@@ -38,7 +38,7 @@ Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Léger et flexible ↔ Adaptable et compatible** et **Vertical — Sécurisé et simple ↔ Optimisé et fiable**.
+La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Flexibilité ↔ Simplicité** et **Vertical — Personnalisation ↔ Scalabilité**.
 <!-- FIGURE:END -->
 
 ## Positionnement
