@@ -1,0 +1,11 @@
+Stockage objet,Multi-fournisseur,Identifiants par fichier de config,CRUD simple,Clés temporaires en attente-partage,URL compatibles S3,Multi-surface,Installation légère
+bucket-helper,5,5,5,5,5,5,5
+boto3,5,2,2,1,2,1,5
+aioboto3,5,2,2,1,2,1,4
+s3fs,4,2,4,2,3,2,4
+MinIO Python SDK,3,2,4,1,3,1,5
+AWS CLI,4,2,4,1,2,2,3
+mc,4,3,5,1,3,2,5
+rclone,5,4,5,1,3,3,5
+DVC,3,3,2,1,2,2,3
+smart_open,4,2,3,1,3,1,5

@@ -14,6 +14,7 @@ just reflects fit to *this* niche.
 
 ## At a glance
 
+<!-- TABLE:START -->
 | Object Storage | Multi-provider | Config-file credentials | Simple CRUD | Stage-and-share temp keys | S3-compatible URLs | Multi-surface | Light install |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -26,14 +27,17 @@ just reflects fit to *this* niche.
 | rclone | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | DVC | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
 | smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
+<!-- TABLE:END -->
 
 ## Positioning map
 
+<!-- FIGURE:START -->
 2D representation of the table above.
 
 ![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/landscape.png)
 
-The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Install ↔ Surface** and **Vertical — Stage ↔ Provider**.
+The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Versatile ↔ Seamless** and **Vertical — Secure ↔ Optimized**.
+<!-- FIGURE:END -->
 
 ## Positioning
 

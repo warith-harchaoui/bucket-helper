@@ -16,6 +16,7 @@ la note reflète seulement l'adéquation à *ce* créneau.
 
 ## En un coup d'œil
 
+<!-- TABLE:START -->
 | Stockage objet | Multi-fournisseur | Identifiants par fichier de config | CRUD simple | Clés temporaires en attente-partage | URL compatibles S3 | Multi-surface | Installation légère |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -28,14 +29,17 @@ la note reflète seulement l'adéquation à *ce* créneau.
 | rclone | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | DVC | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
 | smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
+<!-- TABLE:END -->
 
 ## Carte de positionnement
 
+<!-- FIGURE:START -->
 Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Installation ↔ Surface** et **Vertical — Temporaires ↔ Fournisseur**.
+La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Léger et flexible ↔ Adaptable et compatible** et **Vertical — Sécurisé et simple ↔ Optimisé et fiable**.
+<!-- FIGURE:END -->
 
 ## Positionnement
 

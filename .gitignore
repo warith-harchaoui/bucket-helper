@@ -49,5 +49,3 @@ nomoreclaude.sh
 .pypirc
 
 # Generated landscape positioning-map data (rebuilt from LANDSCAPE.md / PAYSAGE.md)
-assets/landscape.csv
-assets/paysage.csv
