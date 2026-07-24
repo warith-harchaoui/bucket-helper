@@ -16,6 +16,8 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
 
+[🗺️ Paysage](https://github.com/warith-harchaoui/bucket-helper/blob/main/PAYSAGE.md)
+
 [📋 Exemples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
 [🎯 Déclencheurs](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) · [🧩 Skill agent](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md)
@@ -233,7 +235,7 @@ docker run --rm -p 8000:8000 \
 
 Voir aussi : [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (ce qui invoque la boîte à outils),
 [skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (installation du skill agent),
-[LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (positionnement compétitif) et
+[PAYSAGE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/PAYSAGE.md) (positionnement compétitif avec une carte de positionnement) et
 [GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (plan produit visuel — aucune GUI n'est livrée ; bucket-helper est de la plomberie de stockage objet distant).
 
 ## Auteur

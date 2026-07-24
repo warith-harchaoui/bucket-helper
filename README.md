@@ -16,6 +16,8 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
 
+[🗺️ Landscape](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md)
+
 [📋 Examples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
 [🎯 Triggers](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) · [🧩 Agent skill](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md)
@@ -235,7 +237,7 @@ docker run --rm -p 8000:8000 \
 
 See also: [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (what invokes the toolkit),
 [skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (agent skill install),
-[LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning) and
+[LANDSCAPE.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md) (competitive positioning with a positioning map) and
 [GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan — no GUI ships; bucket-helper is remote object-storage plumbing).
 
 ## Author
