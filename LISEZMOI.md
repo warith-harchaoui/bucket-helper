@@ -6,7 +6,7 @@
 
 `Bucket Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** — MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi, et compagnie. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`), et un context manager `remote_tempfile` pour des flux stage-and-share.
+Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** — MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`), et un context manager `remote_tempfile` pour le stage-and-share.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -30,7 +30,7 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git`
 
-Nous recommandons d'utiliser des environnements Python. Consultez ce lien si vous ne savez pas en créer un : [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
+On recommande de travailler dans un environnement Python. Si vous ne savez pas en créer un, voir [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
 
 ### Depuis PyPI (recommandé)
 
@@ -60,14 +60,14 @@ La CLI argparse est toujours disponible. L'extra `[cli]` ajoute la variante clic
 
 ## Configuration
 
-Un template prêt-à-remplir est committé dans [`s3_config.json.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/s3_config.json.example). Copiez-le en `s3_config.json` et éditez-le sur place — les vrais `*config.json` sont gitignored donc impossible de committer des secrets par accident :
+Un template prêt à remplir est committé dans [`s3_config.json.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/s3_config.json.example). Copiez-le en `s3_config.json` et éditez-le sur place — les vrais `*config.json` sont gitignored, donc pas de secret committé par accident :
 
 ```bash
 cp s3_config.json.example s3_config.json
 # puis éditez s3_config.json avec vos identifiants AWS / MinIO / R2 / B2
 ```
 
-Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env`, ou définir des variables d'environnement — `bucket-helper` essaie dans cet ordre via `os_helper.get_config`. Clés requises :
+Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env`, ou définir des variables d'environnement — `bucket-helper` les essaie dans cet ordre via `os_helper.get_config`. Clés requises :
 
 ```json
 {
@@ -103,7 +103,7 @@ Mettez `s3_endpoint_url` à :
 
 ## Utilisation
 
-Pour le catalogue complet d'exemples (uploads / téléchargements / listages, endpoints S3-compatibles — MinIO / R2 / B2 / Spaces / Wasabi, clés distantes temporaires avec auto-nettoyage, miroir avec sftp-helper), voir [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
+Pour le catalogue complet d'exemples (uploads / téléchargements / listages, endpoints S3-compatibles — MinIO / R2 / B2 / Spaces / Wasabi, clés distantes temporaires à nettoyage automatique, miroir avec sftp-helper), voir [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
 
 ```python
 import bucket_helper as bh
@@ -147,7 +147,7 @@ bh.upload("file.bin", cred, "file.bin")
 
 ## Stage-and-share avec `remote_tempfile`
 
-Déposez un fichier généré à une clé aléatoire unique, passez l'URL publique à un worker / webhook en aval, et l'objet est supprimé à la sortie du bloc (même si le corps lève une exception) :
+Déposez un fichier généré sous une clé aléatoire unique, passez l'URL publique à un worker / webhook en aval, et l'objet est supprimé à la sortie du bloc (même si le corps lève une exception) :
 
 ```python
 import bucket_helper as bh
@@ -171,7 +171,7 @@ Chaque fonction publique de la bibliothèque est aussi exposée en :
 - **HTTP FastAPI** — `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (extra `[api]`).
 - **Outils MCP** — `bucket-helper-mcp` (extras `[api,mcp]`).
 
-Les deux CLI partagent les mêmes noms de sous-commandes et de flags — choisissez votre préférée.
+Les deux CLI partagent les mêmes noms de sous-commandes et de flags — prenez celle que vous préférez.
 
 ## Skill agent (Claude / OpenCode)
 
@@ -186,9 +186,9 @@ ln -sfn "$PWD/skills/bucket-helper" ~/.opencode/skills/bucket-helper   # OpenCod
 ```
 
 Le catalogue exhaustif de ce qui déclenche la boîte à outils — formulations en
-langage naturel, commandes, fonctions, indices d'adresse, et règles SKIP
+langage naturel, commandes, fonctions, indices d'adresse, règles SKIP
 explicites — se trouve dans [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md)
-(reflété dans le `references/triggers.md` du skill). Voir
+(repris dans le `references/triggers.md` du skill). Voir
 [skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md)
 pour les détails d'installation.
 
@@ -235,7 +235,7 @@ docker run --rm -p 8000:8000 \
 
 Voir aussi : [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (ce qui invoque la boîte à outils),
 [skills/README.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) (installation du skill agent) et
-[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (plan produit visuel — aucune GUI n'est livrée ; bucket-helper est de la plomberie de stockage objet distant).
+[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (plan produit visuel — aucune GUI n'est livrée : bucket-helper est de la plomberie de stockage objet distant).
 
 ## Auteur
 
