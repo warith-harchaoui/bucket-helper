@@ -14,7 +14,6 @@ Also exposes multi-surface entry points:
 - argparse CLI — :mod:`bucket_helper.cli_argparse` (``bucket-helper``).
 - click CLI     — :mod:`bucket_helper.cli_click` (``bucket-helper-click``).
 - FastAPI HTTP  — :mod:`bucket_helper.api` (``uvicorn bucket_helper.api:app``).
-- MCP tools     — :mod:`bucket_helper.mcp` (``bucket-helper-mcp``).
 
 Usage Example
 -------------

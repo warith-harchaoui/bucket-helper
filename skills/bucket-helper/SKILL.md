@@ -9,9 +9,9 @@ description: >-
   file under a unique random key that auto-deletes on block exit
   (`remote_tempfile`). One `credentials()` loader reads JSON / YAML / .env /
   environment. Exposed as a Python library (`import bucket_helper as bh`), two
-  CLIs (`bucket-helper` argparse and `bucket-helper-click`), a FastAPI HTTP
-  surface, and an MCP tool set. boto3-backed. Remote object storage by design —
-  there is NO local-first mode and NO GUI.
+  CLIs (`bucket-helper` argparse and `bucket-helper-click`), and a FastAPI HTTP
+  surface. boto3-backed. Remote object storage by design — there is NO
+  local-first mode and NO GUI.
 
   TRIGGER — any of: the user names an object-storage operation ("upload this
   file to S3 / my bucket / MinIO / R2 / B2 / Spaces / Wasabi", "put this on the
@@ -21,7 +21,7 @@ description: >-
   "create / make a bucket", "give me a temp remote key + public URL that cleans
   itself up", "stage this file and hand me a shareable URL", "strip the bucket
   off this s3:// URI / get the key part"); the user types or references a command
-  (`bucket-helper`, `bucket-helper-click`, `bucket-helper-mcp`, subcommands
+  (`bucket-helper`, `bucket-helper-click`, subcommands
   `upload|download|delete|exists|list|make-bucket|tempfile|strip-path`) or a
   library function (`credentials`, `upload`, `download`, `delete`, `exists`,
   `list_prefix`, `make_bucket`, `remote_tempfile`, `strip_s3_path`,
@@ -29,7 +29,7 @@ description: >-
   URL (`*.amazonaws.com`, `*.r2.cloudflarestorage.com`, `*.backblazeb2.com`,
   `*.digitaloceanspaces.com`, `*.wasabisys.com`, a MinIO `:9000` endpoint) and
   wants to read/write it; the user has an `s3_config.json` / `s3_config.yaml`
-  and wants to use it; the user wants the bucket-helper HTTP API or MCP server
+  and wants to use it; the user wants the bucket-helper HTTP API server
   run, or asks how to install / run bucket-helper.
 
   SKIP when: the storage is NOT S3-shaped — Google Cloud Storage native API,
@@ -50,8 +50,8 @@ description: >-
 **moving files to and from remote object storage** in AI and data pipelines. It
 is file-oriented and credential-driven: you give it a local path and/or an
 `s3://bucket/key` (or bare key), plus a credentials dict, and it does the
-transfer. The same functions are reachable four ways (library, two CLIs, HTTP
-API, MCP) so an agent can pick whichever fits.
+transfer. The same functions are reachable three ways (library, two CLIs, HTTP
+API) so an agent can pick whichever fits.
 
 > **Remote by design.** bucket-helper's whole purpose is to move data to a
 > *remote* bucket. There is no local-first mode and no GUI — do not look for a
@@ -71,7 +71,6 @@ If missing, install it (boto3 is a hard dependency; pure-Python wheels only):
 pip install bucket-helper                 # core (credentials + CRUD + remote_tempfile)
 pip install 'bucket-helper[cli]'          # + click CLI twin
 pip install 'bucket-helper[api]'          # + FastAPI HTTP surface
-pip install 'bucket-helper[api,mcp]'      # + MCP tools over FastAPI
 ```
 
 No system package is required (boto3 ships as a pure-Python wheel). Unlike
@@ -96,7 +95,7 @@ Optional: `s3_region`, `s3_endpoint_url` (set this for MinIO / R2 / B2 / Spaces
 
 ## The nine operations
 
-Same names across the library, both CLIs, the API, and the MCP tools:
+Same names across the library, both CLIs, and the API:
 
 | Operation | CLI | Library function |
 |-----------|-----|------------------|
@@ -141,7 +140,7 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 ```
 
 For the full flag matrix and every option, read `references/cli-reference.md`.
-For the library API, the credentials schema, the HTTP API and the MCP surface,
+For the library API, the credentials schema, and the HTTP API,
 read `references/surfaces.md`. For the exhaustive, auditable trigger list, read
 `references/triggers.md`.
 

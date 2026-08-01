@@ -41,19 +41,17 @@ pip install bucket-helper
 # Optional surfaces
 pip install "bucket-helper[cli]"       # click-based CLI twin
 pip install "bucket-helper[api]"       # FastAPI HTTP surface
-pip install "bucket-helper[api,mcp]"   # MCP tools over FastAPI
 ```
 
 ### From source (no PyPI)
 
 ```bash
 # Core library
-pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
+pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
 
 # Optional surfaces
-pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
-pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
-pip install "bucket-helper[api,mcp] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0"
+pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
+pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
 ```
 
 The argparse CLI is always available. The `[cli]` extra adds the click twin.
@@ -171,7 +169,6 @@ Every public function in the library is also exposed as:
 - **argparse CLI** — `bucket-helper <subcommand>` (installed by default).
 - **click CLI** — `bucket-helper-click <subcommand>` (install `[cli]` extra).
 - **FastAPI HTTP** — `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
-- **MCP tools** — `bucket-helper-mcp` (install `[api,mcp]` extras).
 
 Both CLIs share the same subcommand names and flags — pick your favourite.
 
@@ -211,14 +208,11 @@ bucket-helper strip-path  --config s3_config.json --address s3://my-bucket/path/
 bucket-helper-click upload --config s3_config.json --input local.txt --key folder/uploaded.txt
 ```
 
-## HTTP + MCP server
+## HTTP server
 
 ```bash
-# Serve HTTP + MCP (default credentials picked up from BUCKET_HELPER_CONFIG)
-BUCKET_HELPER_CONFIG=$PWD/s3_config.json bucket-helper-mcp
-
-# Or run only FastAPI directly:
-uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000
+# Serve HTTP (default credentials picked up from BUCKET_HELPER_CONFIG)
+BUCKET_HELPER_CONFIG=$PWD/s3_config.json uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000
 # → Swagger UI at http://localhost:8000/docs
 ```
 

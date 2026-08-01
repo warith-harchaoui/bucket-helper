@@ -65,7 +65,7 @@ backends de stockage, sous une seule API en forme de dict ; (b) le
 context manager `remote_tempfile` supprime le piège « ai-je oublié de
 supprimer ce blob S3 ? » en déposant un fichier sous une clé aléatoire
 unique qui s'auto-supprime à la sortie du bloc ; (c) les surfaces
-multiples (CLI argparse + CLI click + HTTP FastAPI + outils MCP) sont
+multiples (CLI argparse + CLI click + HTTP FastAPI) sont
 partagées avec le reste de la famille AI-Helpers — mêmes signatures,
 aucune dérive.
 

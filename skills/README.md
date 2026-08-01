@@ -14,7 +14,7 @@ skills/bucket-helper/
 ├── SKILL.md                 # name + trigger-rich description + instructions
 └── references/
     ├── cli-reference.md      # full subcommand + flag matrix, output contract
-    ├── surfaces.md           # library, CLIs, API, MCP, credentials schema (no GUI)
+    ├── surfaces.md           # library, CLIs, API, credentials schema (no GUI)
     └── triggers.md           # exhaustive, auditable trigger catalogue
 ```
 

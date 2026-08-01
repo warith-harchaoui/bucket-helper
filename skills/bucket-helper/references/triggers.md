@@ -49,7 +49,7 @@ It is remote by design: there is no local-first mode and no GUI.
 - "read the bucket creds from env / .env"
 
 **Explicit command / function mentions**
-- `bucket-helper`, `bucket-helper-click`, `bucket-helper-mcp`
+- `bucket-helper`, `bucket-helper-click`
 - subcommands `upload download delete exists list make-bucket tempfile strip-path`
 - functions `credentials upload download delete exists list_prefix make_bucket
   remote_tempfile strip_s3_path get_client_s3`
@@ -62,7 +62,7 @@ It is remote by design: there is no local-first mode and no GUI.
 - an `s3_config.json` / `s3_config.yaml` file in play
 
 **Surfaces**
-- "run the bucket-helper API / HTTP server", "expose these as HTTP / MCP tools"
+- "run the bucket-helper API / HTTP server", "expose these as HTTP"
 - "how do I install / run bucket-helper"
 
 ## Do NOT fire (SKIP)

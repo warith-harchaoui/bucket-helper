@@ -15,7 +15,7 @@ edit file contents.
 
 ## The operations → how to invoke
 
-| Intent | CLI | Library | API / MCP |
+| Intent | CLI | Library | API |
 |--------|-----|---------|-----------|
 | Upload a local file (auto-key if omitted) | `bucket-helper upload` | `upload` | `POST /upload` |
 | Download an object to a local path | `bucket-helper download` | `download` | `POST /download` |
@@ -44,7 +44,7 @@ same flags). There is **no GUI**.
   auto-deletes", "stage this and hand me a shareable URL".
 - **Strip path**: "get the key part of s3://bucket/key".
 - **Credentials**: "use my s3_config.json", "read the bucket creds from env".
-- **Surfaces**: "run the bucket-helper API / MCP server", "install bucket-helper".
+- **Surfaces**: "run the bucket-helper API server", "install bucket-helper".
 
 ## Address / endpoint cues
 

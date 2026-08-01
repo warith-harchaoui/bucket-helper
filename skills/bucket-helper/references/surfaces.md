@@ -101,22 +101,9 @@ Endpoints:
 Uploads spool to a temp file (never held whole in memory); temp dirs are cleaned
 via `BackgroundTasks` after the response is streamed.
 
-## 4. MCP server — FastAPI-MCP (`bucket-helper[api,mcp]`)
-
-```bash
-pip install 'bucket-helper[api,mcp]'
-bucket-helper-mcp                 # serves FastAPI + MCP on :8000
-# or: python -m bucket_helper.mcp
-```
-
-Wraps the exact FastAPI app with `fastapi_mcp` — the same endpoints become MCP
-tools (`upload`, `download`, `exists`, `list`, `delete`, `make-bucket`,
-`tempfile`, `strip-path`) for any MCP-aware host (e.g. Claude Desktop). Host /
-port via `BUCKET_HELPER_HOST` / `BUCKET_HELPER_PORT` env vars.
-
 ## Docker
 
-The repo ships a `Dockerfile` that serves the API + MCP:
+The repo ships a `Dockerfile` that serves the API:
 
 ```bash
 docker build -t bucket-helper .

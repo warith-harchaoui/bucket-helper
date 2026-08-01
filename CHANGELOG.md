@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-01
+
+### Removed
+
+- **MCP surface dropped.** `fastapi-mcp`'s latest release (0.4.0) is
+  incompatible with the latest `mcp` SDK (`Server.__init__()` signature
+  mismatch), breaking CI with no available version pairing to pin around.
+  Removed `bucket_helper/mcp.py`, the `bucket-helper-mcp` entry point, the
+  `mcp` extra, and every doc/skill mention. The library, both CLIs, and the
+  FastAPI HTTP surface are unaffected — bucket-helper now ships **three**
+  surfaces instead of four (it never had a GUI, by design).
+
 ## [0.3.0] - 2026-07-20
 
 ### Added

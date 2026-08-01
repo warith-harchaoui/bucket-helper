@@ -3,14 +3,14 @@
 # bucket-helper — reproducible container image.
 #
 # Single-stage build: the base stage installs the package with the
-# [api,mcp] extras so the container can serve the HTTP + MCP surfaces
-# out of the box. No heavy system deps are needed — boto3 is a pure
-# Python wheel — so the image stays lean.
+# [api] extra so the container can serve the HTTP surface out of the
+# box. No heavy system deps are needed — boto3 is a pure Python wheel
+# — so the image stays lean.
 #
 # Build:
 #   docker build -t bucket-helper .
 #
-# Run (HTTP + MCP on 0.0.0.0:8000):
+# Run (HTTP on 0.0.0.0:8000):
 #   docker run --rm -p 8000:8000 \
 #     -e BUCKET_HELPER_CONFIG=/config/s3_config.json \
 #     -v $PWD/s3_config.json:/config/s3_config.json:ro \
@@ -42,10 +42,10 @@ WORKDIR /app
 COPY --chown=app:app pyproject.toml README.md LICENSE ./
 COPY --chown=app:app bucket_helper ./bucket_helper
 
-# Install with API + MCP extras — the container's raison d'être is to
-# serve the HTTP / MCP surfaces. CLI entry points come along for free.
+# Install with the API extra — the container's raison d'être is to
+# serve the HTTP surface. CLI entry points come along for free.
 RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir '.[api,mcp]'
+ && pip install --no-cache-dir '.[api]'
 
 # --- runtime ----------------------------------------------------------------
 USER app
@@ -56,5 +56,5 @@ ENV PYTHONUNBUFFERED=1 \
 
 # tini reaps orphan children cleanly on SIGTERM.
 ENTRYPOINT ["/usr/bin/tini", "--"]
-# Default: serve FastAPI + MCP. Override for one-shot CLI usage.
-CMD ["bucket-helper-mcp"]
+# Default: serve the FastAPI surface. Override for one-shot CLI usage.
+CMD ["uvicorn", "bucket_helper.api:app", "--host", "0.0.0.0", "--port", "8000"]

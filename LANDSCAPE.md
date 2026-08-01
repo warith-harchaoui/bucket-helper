@@ -60,7 +60,7 @@ a fleet of storage backends under one dict-shaped API, (b) the
 `remote_tempfile` context manager that removes the "did I forget to
 delete that S3 blob?" foot-gun by staging a file under a unique random
 key that auto-deletes on block exit, and (c) the multi-surface exposure
-(argparse CLI + click CLI + FastAPI HTTP + MCP tools) shared with the
+(argparse CLI + click CLI + FastAPI HTTP) shared with the
 rest of the AI-Helpers family — same function signatures, no drift.
 
 Two rows are scored `n/a` on some criteria in the raw notes and are
