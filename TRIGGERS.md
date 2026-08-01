@@ -2,9 +2,7 @@
 
 This is the user-facing, exhaustive catalogue of what `bucket-helper` can do and
 the natural-language phrasings, commands, functions, and address cues that
-should invoke it — whether you call it yourself or drive it as a
-Claude Code / OpenCode **skill** (see [`skills/bucket-helper/SKILL.md`](skills/bucket-helper/SKILL.md)
-and its [`references/triggers.md`](skills/bucket-helper/references/triggers.md)).
+should invoke it.
 
 `bucket-helper` moves files to and from **AWS S3 and any S3-compatible object
 storage** (MinIO, Cloudflare R2, Backblaze B2 S3 API, DigitalOcean Spaces,
@@ -74,4 +72,3 @@ same flags). There is **no GUI**.
 - [`LISEZMOI.md`](LISEZMOI.md) — French mirror.
 - [`EXAMPLES.md`](EXAMPLES.md) — runnable recipes.
 - [`LANDSCAPE.md`](LANDSCAPE.md) — competitive positioning.
-- [`skills/README.md`](skills/README.md) — installing this as an agent skill.
