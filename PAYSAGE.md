@@ -10,25 +10,26 @@ objet pour les pipelines d'IA et de données (identifiants par fichier de
 configuration, upload / download / list / exists / delete, support du
 mode chemin pour MinIO / R2 / B2 / Spaces / Wasabi, clés temporaires de
 stage-and-share à nettoyage automatique). Une bibliothèque optimisée
-pour un tout autre usage (par ex. un SDK bas niveau, du versionnage de
-données façon DVC) n'est pas pénalisée — la note reflète seulement
+pour un tout autre usage (par ex. un SDK bas niveau, une CLI native
+d'un fournisseur) n'est pas pénalisée — la note reflète seulement
 l'adéquation à *ce* créneau.
 
 ## En un coup d'œil
 
 <!-- TABLE:START -->
-| Stockage objet | Multi-fournisseur | Identifiants par fichier de config | CRUD simple | Clés temporaires en attente-partage | URL compatibles S3 | Multi-surface | Installation légère |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| boto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
-| aioboto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ |
-| s3fs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
-| MinIO Python SDK | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
-| AWS CLI | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| mc | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| rclone | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| DVC | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
+| Stockage objet | Multi-fournisseur S3 | Identifiants par fichier de config | CRUD simple | Clés temporaires en attente-partage | URL compatibles S3 | Multi-surface | Installation légère | Ergonomie pipeline IA |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| boto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| botocore | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| minio | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| s3fs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| cloudpathlib | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| apache-libcloud | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| awscli | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| gsutil | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ |
+| fsspec | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 <!-- TABLE:END -->
 
 ## Carte de positionnement
@@ -38,7 +39,7 @@ Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Flexibilité ↔ Simplicité** et **Vertical — Personnalisation ↔ Scalabilité**.
+La carte est un résumé en 2D des 8 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Économie ↔ Flexibilité** et **Vertical — Simplicité ↔ Intelligence**.
 <!-- FIGURE:END -->
 
 ## Positionnement
@@ -81,17 +82,20 @@ multi-fournisseur et constructeur d'URL ne s'appliquent pas.
   où le nettoyage distant automatique compte ; quand on utilise déjà
   `os-helper` / `sftp-helper` et qu'on veut la même forme pour le
   stockage objet.
-- **`boto3`** — on a besoin d'une fonctionnalité boto3 que nous
-  n'enveloppons pas (URL présignées, chiffrement côté serveur,
-  copie multipart, SelectObjectContent, …).
+- **`boto3` / `botocore`** — on a besoin d'une fonctionnalité de SDK bas
+  niveau que nous n'enveloppons pas (URL présignées, chiffrement côté
+  serveur, copie multipart, SelectObjectContent, …) ; `botocore` quand
+  on veut la couche de transport nue sous `boto3`.
 - **`s3fs` / `fsspec`** — on veut un système de fichiers natif `fsspec`
   pour que `pandas` / `dask` / `polars` lisent directement depuis
   `s3://…`.
-- **`rclone` / `mc`** — travail DevOps / sysadmin : synchronisations en
-  masse, copies inter-clouds, sauvegardes pilotées par cron. Meilleure
-  ergonomie que n'importe quelle bibliothèque Python pour cette
-  tâche précise.
-- **`DVC`** — on veut du *versionnage de données*, pas seulement du
-  stockage objet.
+- **`awscli` / `gsutil`** — travail DevOps / sysadmin depuis le shell :
+  synchronisations en masse, copies scriptées, sauvegardes pilotées par
+  cron. Meilleure ergonomie que n'importe quelle bibliothèque Python
+  pour cette tâche précise.
+- **`minio` / `cloudpathlib` / `apache-libcloud`** — un seul usage
+  étroit : le SDK MinIO du fournisseur, des chemins cloud façon
+  `pathlib.Path`, ou une abstraction multi-cloud large qui dépasse
+  largement S3.
 - **`smart_open`** — on a seulement besoin de `open("s3://…")` et rien
   d'autre.

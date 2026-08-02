@@ -9,24 +9,25 @@ everyday object-storage plumbing for AI + data pipelines (config-file
 credentials, upload / download / list / exists / delete, path-style
 MinIO / R2 / B2 / Spaces / Wasabi support, stage-and-share temp keys
 with auto-cleanup). A library optimised for a very different job (e.g.
-low-level SDK, DVC-style data versioning) is not penalised — the score
+low-level SDK, provider-native CLI) is not penalised — the score
 just reflects fit to *this* niche.
 
 ## At a glance
 
 <!-- TABLE:START -->
-| Object Storage | Multi-provider | Config-file credentials | Simple CRUD | Stage-and-share temp keys | S3-compatible URLs | Multi-surface | Light install |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| boto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
-| aioboto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ |
-| s3fs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
-| MinIO Python SDK | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
-| AWS CLI | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| mc | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| rclone | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| DVC | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ |
-| smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ |
+| Object Storage | Multi-provider S3 | Config-file credentials | Simple CRUD | Stage-and-share temp keys | S3-compatible URLs | Multi-surface | Light install | AI-pipeline ergonomics |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **bucket-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| boto3 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| botocore | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| minio | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| s3fs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| cloudpathlib | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| smart_open | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| apache-libcloud | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| awscli | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| gsutil | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ |
+| fsspec | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 <!-- TABLE:END -->
 
 ## Positioning map
@@ -36,7 +37,7 @@ just reflects fit to *this* niche.
 
 ![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/landscape.png)
 
-The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Ease of Setup ↔ Versatility** and **Vertical — Simplicity ↔ Scalability**.
+The map is a 2-D summary of the eight criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Ease of Setup ↔ User-Friendly** and **Vertical — Simplicity ↔ Scalability**.
 <!-- FIGURE:END -->
 
 ## Positioning
@@ -75,12 +76,16 @@ apply.
   where automatic remote cleanup matters; when you already use
   `os-helper` / `sftp-helper` and want the same shape for object
   storage.
-- **`boto3`** — you need a boto3 feature we do not wrap (presigned URLs,
-  server-side encryption, multipart-copy, SelectObjectContent, …).
+- **`boto3` / `botocore`** — you need a low-level SDK feature we do not
+  wrap (presigned URLs, server-side encryption, multipart-copy,
+  SelectObjectContent, …); `botocore` when you want the bare transport
+  layer under `boto3`.
 - **`s3fs` / `fsspec`** — you want an `fsspec`-native filesystem so
   `pandas` / `dask` / `polars` can read directly from `s3://…`.
-- **`rclone` / `mc`** — DevOps / sysadmin work: bulk syncs, cross-cloud
-  copies, cron-driven backups. Better ergonomics than any Python
-  library for that particular job.
-- **`DVC`** — you want *data versioning*, not just object storage.
+- **`awscli` / `gsutil`** — DevOps / sysadmin work from the shell: bulk
+  syncs, scripted copies, cron-driven backups. Better ergonomics than
+  any Python library for that particular job.
+- **`minio` / `cloudpathlib` / `apache-libcloud`** — a single narrow
+  fit: the vendor's own MinIO SDK, `pathlib.Path`-style cloud paths, or
+  a broad multi-cloud abstraction that reaches well beyond S3.
 - **`smart_open`** — you only need `open("s3://…")` and nothing else.
