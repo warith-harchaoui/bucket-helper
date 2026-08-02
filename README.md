@@ -47,11 +47,11 @@ pip install "bucket-helper[api]"       # FastAPI HTTP surface
 
 ```bash
 # Core library
-pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
+pip install bucket-helper
 
 # Optional surfaces
-pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
-pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
+pip install "bucket-helper[cli]"
+pip install "bucket-helper[api]"
 ```
 
 The argparse CLI is always available. The `[cli]` extra adds the click twin.
@@ -227,4 +227,4 @@ Special thanks to [Mohamed Chelali](https://mchelali.github.io) and [Bachir Zerr
 
 ## License
 
-This project is licensed under the BSD-3-Clause License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License — see the [LICENSE](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) file for details.

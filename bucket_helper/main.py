@@ -294,9 +294,7 @@ def upload(
     # exactly what ``tqdm.update`` expects — so ``bar.update`` wires in directly.
     size = osh.size_file(local_path)
     with get_client_s3(cred) as s3, osh.progress_bar(total=size, desc=key) as bar:
-        s3.upload_file(
-            local_path, bucket, key, ExtraArgs=extra_args or None, Callback=bar.update
-        )
+        s3.upload_file(local_path, bucket, key, ExtraArgs=extra_args or None, Callback=bar.update)
 
     uri = f"s3://{bucket}/{key}"
     osh.info("S3 upload OK: %s → %s", local_path, uri)

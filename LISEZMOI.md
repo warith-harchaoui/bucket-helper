@@ -47,11 +47,11 @@ pip install "bucket-helper[api]"       # surface HTTP FastAPI
 
 ```bash
 # Bibliothèque principale
-pip install "git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
+pip install bucket-helper
 
 # Surfaces optionnelles
-pip install "bucket-helper[cli] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
-pip install "bucket-helper[api] @ git+https://github.com/warith-harchaoui/bucket-helper.git@v0.4.0"
+pip install "bucket-helper[cli]"
+pip install "bucket-helper[api]"
 ```
 
 La CLI argparse est toujours disponible. L'extra `[cli]` ajoute la variante click.
@@ -225,4 +225,4 @@ Remerciements chaleureux à [Mohamed Chelali](https://mchelali.github.io) et [Ba
 
 ## Licence
 
-Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](LICENSE) pour les détails.
+Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) pour les détails.

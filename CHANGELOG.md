@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-02
+
+First stable release. The storage API (`upload` / `download` / `list` /
+`delete` / `exists` / `make_bucket` / `remote_tempfile`, plus the `credentials`
+loader) has been stable across the 0.x line; 1.0.0 commits to it and adopts the
+hardened suite foundation.
+
+### Changed
+
+- **Requires os-helper 2.x** (`os-helper>=2.0.0,<3`, was `>=1.5.3`), adopting the
+  stable AI Helpers foundation for logging and file management.
+- Development status promoted to Production/Stable.
+- **CI is now a real gate.** The lint job dropped its `continue-on-error: true`
+  and `ruff check . || true` — both silently swallowed lint failures — and now
+  runs a blocking `ruff check .` plus `ruff format --check .`. The test matrix
+  is trimmed to a single Python (the full sweep runs locally before push), and
+  the vestigial `ffmpeg` system-deps step (a template leftover; bucket-helper
+  never touches ffmpeg) is removed.
+
+### Fixed
+
+- README / LISEZMOI install commands no longer self-pin to a git tag (`@v0.4.0`);
+  they use `pip install bucket-helper`, which always resolves to the latest
+  published release.
+
+### Added
+
+- `tests/test_readme_install_pin.py` guards against the stale git self-pin ever
+  returning to any Markdown file.
+
 ## [0.4.1] - 2026-08-01
 
 ### Removed

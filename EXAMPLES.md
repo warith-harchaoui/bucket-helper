@@ -32,7 +32,7 @@ README for the required keys and the per-provider endpoint table.
 
 ```bash
 pip install --force-reinstall --no-cache-dir \
-    git+https://github.com/warith-harchaoui/bucket-helper.git@v0.3.0
+    bucket-helper
 ```
 
 Underneath, `bucket-helper` is a thin layer on top of
