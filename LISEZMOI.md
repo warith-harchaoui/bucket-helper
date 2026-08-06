@@ -167,6 +167,8 @@ Chaque fonction publique de la bibliothèque est aussi exposée en :
 - **CLI argparse** — `bucket-helper <sous-commande>` (installée par défaut).
 - **CLI click** — `bucket-helper-click <sous-commande>` (nécessite l'extra `[cli]`).
 - **HTTP FastAPI** — `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (extra `[api]`).
+- **MCP** — `bucket-helper-mcp` expose la même surface HTTP comme outils MCP
+  pour tout hôte agentique compatible (extra `[mcp]`).
 
 Les deux CLI partagent les mêmes noms de sous-commandes et de flags — prenez celle que vous préférez.
 

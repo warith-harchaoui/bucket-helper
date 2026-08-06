@@ -169,6 +169,8 @@ Every public function in the library is also exposed as:
 - **argparse CLI** — `bucket-helper <subcommand>` (installed by default).
 - **click CLI** — `bucket-helper-click <subcommand>` (install `[cli]` extra).
 - **FastAPI HTTP** — `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
+- **MCP** — `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
+  any MCP-aware agent host (install `[mcp]` extra).
 
 Both CLIs share the same subcommand names and flags — pick your favourite.
 
