@@ -72,7 +72,7 @@ aucune dérive.
 
 Deux lignes sont notées `n/a` sur certains critères dans les notes
 brutes et sont donc omises de la grille « en un coup d'œil » : le frère
-`sftp-helper` parle SFTP, et non S3, de sorte que ses cellules
+`sftp-helper` parle SFTP et non S3, de sorte que ses cellules
 multi-fournisseur et constructeur d'URL ne s'appliquent pas.
 
 ## Quand choisir quoi
@@ -95,7 +95,7 @@ multi-fournisseur et constructeur d'URL ne s'appliquent pas.
   pour cette tâche précise.
 - **`minio` / `cloudpathlib` / `apache-libcloud`** — un seul usage
   étroit : le SDK MinIO du fournisseur, des chemins cloud façon
-  `pathlib.Path`, ou une abstraction multi-cloud large qui dépasse
+  `pathlib.Path` ou une abstraction multi-cloud large qui dépasse
   largement S3.
 - **`smart_open`** — on a seulement besoin de `open("s3://…")` et rien
   d'autre.

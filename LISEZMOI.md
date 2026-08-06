@@ -6,7 +6,7 @@
 
 `Bucket Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** — MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`), et un context manager `remote_tempfile` pour le stage-and-share.
+Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** — MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`) et un context manager `remote_tempfile` pour le stage-and-share.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -65,7 +65,7 @@ cp s3_config.json.example s3_config.json
 # puis éditez s3_config.json avec vos identifiants AWS / MinIO / R2 / B2
 ```
 
-Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env`, ou définir des variables d'environnement — `bucket-helper` les essaie dans cet ordre via `os_helper.get_config`. Clés requises :
+Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env` ou définir des variables d'environnement — `bucket-helper` les essaie dans cet ordre via `os_helper.get_config`. Clés requises :
 
 ```json
 {
@@ -145,7 +145,7 @@ bh.upload("file.bin", cred, "file.bin")
 
 ## Stage-and-share avec `remote_tempfile`
 
-Déposez un fichier généré sous une clé aléatoire unique, passez l'URL publique à un worker / webhook en aval, et l'objet est supprimé à la sortie du bloc (même si le corps lève une exception) :
+Déposez un fichier généré sous une clé aléatoire unique, passez l'URL publique à un worker / webhook en aval et l'objet est supprimé à la sortie du bloc (même si le corps lève une exception) :
 
 ```python
 import bucket_helper as bh
