@@ -37,7 +37,7 @@ just reflects fit to *this* niche.
 
 ![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/landscape.png)
 
-The map is a 2-D summary of the eight criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Ease of Setup ↔ User-Friendly** and **Vertical — Simplicity ↔ Scalability**.
+The map is a 2-D summary of the eight criteria, so read it as a shape, not a scoreboard. `bucket-helper` is at the top-right corner. The axes read **Horizontal — Adaptable ↔ Accessible** and **Vertical — Streamlined ↔ Versatile**.
 <!-- FIGURE:END -->
 
 ## Positioning

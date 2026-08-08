@@ -39,7 +39,7 @@ Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 8 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Économie ↔ Flexibilité** et **Vertical — Simplicité ↔ Intelligence**.
+La carte est un résumé en 2D des 8 critères : à lire comme une forme, pas comme un classement. « bucket-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Agilité ↔ Productivité** et **Vertical — Simplicité ↔ Adaptabilité**.
 <!-- FIGURE:END -->
 
 ## Positionnement
