@@ -12,6 +12,14 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+## The Promise
+
+**Remote by design.** `bucket-helper` exists to move data to and from *object
+storage you choose* — AWS, or any S3-compatible endpoint you point it at
+(including a MinIO instance on your own network). It is deliberately **not**
+local-first and ships **no GUI**. For a remote reached over SFTP instead of
+S3, use `sftp-helper`; for downloading media from a URL, use `youtube-helper`.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
@@ -21,6 +29,22 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 [📋 Examples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
 [🎯 Triggers](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md)
+
+## Features
+
+- **CRUD** against AWS S3 or any S3-compatible endpoint: `upload`, `download`,
+  `delete`, `exists`, `list_prefix`.
+- **Works against any S3-compatible provider** — MinIO, Backblaze B2 S3 API,
+  DigitalOcean Spaces, Cloudflare R2, Wasabi — by pointing the `endpoint_url`
+  credential at it; no code changes per provider.
+- **Credentials loader** (`credentials`) resolving JSON / YAML / environment
+  variables / `.env`, in that fallback order.
+- **`remote_tempfile`** context manager for stage-and-share flows — upload,
+  hand back the object, auto-delete on block exit, no manual cleanup.
+- **Three surfaces, one behavior** — Python library, argparse CLI, click CLI
+  twin (`[cli]` extra), and FastAPI HTTP surface (`[api]` extra). See the
+  [multi-surface section](#multi-surface-exposure).
+- **Docker image** ships the HTTP server ready to run.
 
 ## Installation
 

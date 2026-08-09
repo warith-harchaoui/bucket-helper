@@ -12,6 +12,16 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+## La promesse
+
+**Distant par conception.** `bucket-helper` existe pour déplacer des données
+vers et depuis le stockage objet *de votre choix* — AWS, ou tout point de
+terminaison compatible S3 que vous lui indiquez (y compris une instance MinIO
+sur votre propre réseau). Il n'est donc volontairement **pas** local-first et
+ne fournit **aucune interface graphique**. Pour un distant joint en SFTP
+plutôt qu'en S3, utilisez `sftp-helper` ; pour télécharger un média depuis une
+URL, utilisez `youtube-helper`.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
@@ -21,6 +31,24 @@ Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** �
 [📋 Exemples](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md)
 
 [🎯 Déclencheurs](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md)
+
+## Fonctionnalités
+
+- **CRUD** contre AWS S3 ou tout point de terminaison compatible S3 :
+  `upload`, `download`, `delete`, `exists`, `list_prefix`.
+- **Fonctionne avec n'importe quel fournisseur compatible S3** — MinIO,
+  Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi — en
+  pointant l'identifiant `endpoint_url` dessus ; aucun changement de code par
+  fournisseur.
+- **Chargeur d'identifiants** (`credentials`) résolvant JSON / YAML /
+  variables d'environnement / `.env`, dans cet ordre de repli.
+- **Context manager `remote_tempfile`** pour le stage-and-share : upload,
+  retourne l'objet, suppression automatique à la sortie du bloc, aucun
+  nettoyage manuel.
+- **Trois surfaces, un seul comportement** — bibliothèque Python, CLI
+  argparse, jumeau CLI click (extra `[cli]`) et surface HTTP FastAPI (extra
+  `[api]`). Voir la [section multi-surface](#exposition-multi-surfaces).
+- **Image Docker** livre le serveur HTTP prêt à l'emploi.
 
 ## Installation
 
