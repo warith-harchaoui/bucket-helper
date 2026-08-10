@@ -21,7 +21,7 @@ reversible, and observable** — not to reproduce `aws s3 cp` as a form.
 ### 1. Unified Vault View *(primary surface)*
 
 - Left rail: every configured credential (one entry per
-  `s3_config.json`), grouped by *class* (AWS / MinIO / R2 / B2 / Spaces
+  `settings.yaml`), grouped by *class* (AWS / MinIO / R2 / B2 / Spaces
   / Wasabi) and shown with the provider's own visual accent (color +
   logo) so a MinIO bucket never *looks* like an AWS bucket. Prevents
   the "wrong-account" foot-gun that costs money on AWS.

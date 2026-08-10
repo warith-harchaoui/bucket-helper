@@ -20,10 +20,10 @@ Design notes
 
 Usage Example
 -------------
->>> #   bucket-helper-click upload      --config s3_config.json --input local.txt --key folder/uploaded.txt
->>> #   bucket-helper-click download    --config s3_config.json --key folder/uploaded.txt --output local.txt
->>> #   bucket-helper-click list        --config s3_config.json --prefix folder/
->>> #   bucket-helper-click tempfile    --config s3_config.json --ext json --prefix runs
+>>> #   bucket-helper-click upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
+>>> #   bucket-helper-click download    --config settings.yaml --key folder/uploaded.txt --output local.txt
+>>> #   bucket-helper-click list        --config settings.yaml --prefix folder/
+>>> #   bucket-helper-click tempfile    --config settings.yaml --ext json --prefix runs
 
 Author
 ------
@@ -102,7 +102,7 @@ def _config_option(f: Callable[..., Any]) -> Callable[..., Any]:
         "--config",
         default=None,
         type=click.Path(exists=False),
-        help="Path to s3_config.json / .yaml, or a folder holding one. Empty = env-only.",
+        help="Path to settings.yaml (or .json), or a folder holding one. Empty = env-only.",
     )(f)
 
 

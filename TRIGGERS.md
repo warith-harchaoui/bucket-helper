@@ -41,7 +41,7 @@ same flags). There is **no GUI**.
 - **Stage-and-share**: "give me a throwaway remote key + public URL that
   auto-deletes", "stage this and hand me a shareable URL".
 - **Strip path**: "get the key part of s3://bucket/key".
-- **Credentials**: "use my s3_config.json", "read the bucket creds from env".
+- **Credentials**: "use my settings.yaml", "read the bucket creds from env".
 - **Surfaces**: "run the bucket-helper API server", "install bucket-helper".
 
 ## Address / endpoint cues
@@ -50,7 +50,7 @@ same flags). There is **no GUI**.
 - An S3 endpoint: `*.amazonaws.com`, `*.r2.cloudflarestorage.com`,
   `*.backblazeb2.com`, `*.digitaloceanspaces.com`, `*.wasabisys.com`, a MinIO
   `:9000` endpoint.
-- An `s3_config.json` / `s3_config.yaml` file in play.
+- A `settings.yaml` file in play.
 
 ## When NOT to use bucket-helper (SKIP)
 

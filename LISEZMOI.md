@@ -86,14 +86,14 @@ La CLI argparse est toujours disponible. L'extra `[cli]` ajoute la variante clic
 
 ## Configuration
 
-Un template prêt à remplir est committé dans [`s3_config.json.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/s3_config.json.example). Copiez-le en `s3_config.json` et éditez-le sur place — les vrais `*config.json` sont gitignored, donc pas de secret committé par accident :
+Un template prêt à remplir est committé dans [`settings.yaml.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/settings.yaml.example). Copiez-le en `settings.yaml` et éditez-le sur place : `settings.yaml` est gitignored, donc pas de secret committé par accident :
 
 ```bash
-cp s3_config.json.example s3_config.json
-# puis éditez s3_config.json avec vos identifiants AWS / MinIO / R2 / B2
+cp settings.yaml.example settings.yaml
+# puis éditez settings.yaml avec vos identifiants AWS / MinIO / R2 / B2
 ```
 
-Vous pouvez aussi écrire un `s3_config.yaml`, utiliser un `.env` ou définir des variables d'environnement — `bucket-helper` les essaie dans cet ordre via `os_helper.get_config`. Clés requises :
+Vous pouvez aussi écrire du JSON plutôt que du YAML, utiliser un `.env` ou définir des variables d'environnement : `bucket-helper` les essaie dans cet ordre via `os_helper.get_config`. Clés requises :
 
 ```json
 {
@@ -135,7 +135,7 @@ Pour le catalogue complet d'exemples (uploads / téléchargements / listages, en
 import bucket_helper as bh
 
 # Charger les identifiants — JSON / YAML / env / .env (repli automatique dans cet ordre)
-cred = bh.credentials("path/to/s3_config.json")
+cred = bh.credentials("path/to/settings.yaml")
 
 # Uploader un fichier local
 uri = bh.upload("local.txt", cred, "folder/uploaded.txt")
@@ -179,7 +179,7 @@ Déposez un fichier généré sous une clé aléatoire unique, passez l'URL publ
 import bucket_helper as bh
 import requests
 
-cred = bh.credentials("path/to/s3_config.json")
+cred = bh.credentials("path/to/settings.yaml")
 
 with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url):
     bh.upload("payload.json", cred, s3_addr, content_type="application/json")
@@ -208,24 +208,24 @@ explicites — se trouve dans [TRIGGERS.md](https://github.com/warith-harchaoui/
 
 ```bash
 # CLI argparse (toujours disponible)
-bucket-helper upload      --config s3_config.json --input local.txt --key folder/uploaded.txt
-bucket-helper exists      --config s3_config.json --key folder/uploaded.txt
-bucket-helper download    --config s3_config.json --key folder/uploaded.txt --output back.txt
-bucket-helper list        --config s3_config.json --prefix folder/
-bucket-helper delete      --config s3_config.json --key folder/uploaded.txt
-bucket-helper make-bucket --config s3_config.json --bucket new-bucket
-bucket-helper tempfile    --config s3_config.json --ext json --prefix runs
-bucket-helper strip-path  --config s3_config.json --address s3://my-bucket/path/to/obj
+bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
+bucket-helper exists      --config settings.yaml --key folder/uploaded.txt
+bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output back.txt
+bucket-helper list        --config settings.yaml --prefix folder/
+bucket-helper delete      --config settings.yaml --key folder/uploaded.txt
+bucket-helper make-bucket --config settings.yaml --bucket new-bucket
+bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
+bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
 
 # CLI click — mêmes verbes, mêmes flags
-bucket-helper-click upload --config s3_config.json --input local.txt --key folder/uploaded.txt
+bucket-helper-click upload --config settings.yaml --input local.txt --key folder/uploaded.txt
 ```
 
 ## Serveur HTTP
 
 ```bash
 # Sert HTTP (les credentials par défaut viennent de BUCKET_HELPER_CONFIG)
-BUCKET_HELPER_CONFIG=$PWD/s3_config.json uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000
+BUCKET_HELPER_CONFIG=$PWD/settings.yaml uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000
 # → Swagger UI sur http://localhost:8000/docs
 ```
 
@@ -237,8 +237,8 @@ requête (`s3_access_key` / `s3_secret_key` / `s3_bucket` / `s3_https` / …).
 ```bash
 docker build -t bucket-helper .
 docker run --rm -p 8000:8000 \
-  -e BUCKET_HELPER_CONFIG=/config/s3_config.json \
-  -v $PWD/s3_config.json:/config/s3_config.json:ro \
+  -e BUCKET_HELPER_CONFIG=/config/settings.yaml \
+  -v $PWD/settings.yaml:/config/settings.yaml:ro \
   bucket-helper
 ```
 

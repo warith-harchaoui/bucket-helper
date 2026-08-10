@@ -27,7 +27,7 @@ Anything that speaks the AWS S3 API works transparently — just set
 Usage Example
 -------------
 >>> import bucket_helper as bh
->>> cred = bh.credentials("path/to/s3_config.json")
+>>> cred = bh.credentials("path/to/settings.yaml")
 >>> # Upload a local file at an explicit key.
 >>> uri = bh.upload("local.bin", cred, "folder/local.bin")
 >>> # Probe it, download it, list around it, then delete it.
@@ -434,7 +434,7 @@ def remote_tempfile(
     Example
     -------
     >>> import bucket_helper as bh
-    >>> cred = bh.credentials("path/to/s3_config.json")
+    >>> cred = bh.credentials("path/to/settings.yaml")
     >>> with bh.remote_tempfile(cred, ext="json") as (addr, url):
     ...     bh.upload("payload.json", cred, addr, content_type="application/json")
     ...     # publish `url` somewhere, e.g. trigger a webhook

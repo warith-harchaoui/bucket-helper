@@ -18,7 +18,7 @@ Also exposes multi-surface entry points:
 Usage Example
 -------------
 >>> import bucket_helper as bh
->>> cred = bh.credentials("path/to/s3_config.json")
+>>> cred = bh.credentials("path/to/settings.yaml")
 >>> uri = bh.upload("local.txt", cred, "folder/uploaded.txt")
 >>> assert bh.exists(uri, cred)
 >>> bh.download(uri, "back.txt", cred)

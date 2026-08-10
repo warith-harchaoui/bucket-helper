@@ -26,14 +26,14 @@ Subcommands
 
 Usage Example
 -------------
->>> #   bucket-helper upload      --config s3_config.json --input local.txt --key folder/uploaded.txt
->>> #   bucket-helper download    --config s3_config.json --key folder/uploaded.txt --output local.txt
->>> #   bucket-helper delete      --config s3_config.json --key folder/uploaded.txt
->>> #   bucket-helper exists      --config s3_config.json --key folder/uploaded.txt
->>> #   bucket-helper list        --config s3_config.json --prefix folder/
->>> #   bucket-helper make-bucket --config s3_config.json --bucket new-bucket
->>> #   bucket-helper tempfile    --config s3_config.json --ext json --prefix runs
->>> #   bucket-helper strip-path  --config s3_config.json --address s3://my-bucket/path/to/obj
+>>> #   bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
+>>> #   bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output local.txt
+>>> #   bucket-helper delete      --config settings.yaml --key folder/uploaded.txt
+>>> #   bucket-helper exists      --config settings.yaml --key folder/uploaded.txt
+>>> #   bucket-helper list        --config settings.yaml --prefix folder/
+>>> #   bucket-helper make-bucket --config settings.yaml --bucket new-bucket
+>>> #   bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
+>>> #   bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
 
 Author
 ------
@@ -328,7 +328,7 @@ def _add_common_config(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--config",
         default=None,
-        help="Path to s3_config.json / .yaml, or a folder holding one. Empty = env-only.",
+        help="Path to settings.yaml (or .json), or a folder holding one. Empty = env-only.",
     )
 
 

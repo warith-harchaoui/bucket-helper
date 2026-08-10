@@ -9,9 +9,9 @@ import bucket_helper as bh
 import os_helper as osh
 ```
 
-and that you have a configuration source (`s3_config.json`,
-`s3_config.yaml`, `.env`, or `S3_*` environment variables) — see the
-README for the required keys and the per-provider endpoint table.
+and that you have a configuration source (`settings.yaml`, `.env`, or
+`S3_*` environment variables) — see the README for the required keys
+and the per-provider endpoint table.
 
 ---
 
@@ -43,8 +43,8 @@ non-AWS backends.
 ## Load credentials
 
 ```python
-# JSON / YAML file (preferred for ops)
-cred = bh.credentials("path/to/s3_config.json")
+# YAML / JSON file (preferred for ops)
+cred = bh.credentials("path/to/settings.yaml")
 
 # Fall back to .env / S3_* environment variables
 cred = bh.credentials()
@@ -121,7 +121,7 @@ consumer, clean up):
 ```python
 import requests
 
-cred = bh.credentials("path/to/s3_config.json")
+cred = bh.credentials("path/to/settings.yaml")
 
 with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url):
     bh.upload("payload.json", cred, s3_addr, content_type="application/json")
@@ -169,8 +169,8 @@ import sftp_helper as sftph
 
 osh.verbosity(2)
 
-s3_cred  = bh.credentials("path/to/s3_config.json")
-sftp_cred = sftph.credentials("path/to/sftp_config.json")
+s3_cred  = bh.credentials("path/to/settings.yaml")
+sftp_cred = sftph.credentials("path/to/settings.yaml")
 
 # Long-term archive on S3
 s3_uri = bh.upload("report.pdf", s3_cred, "reports/2026-06.pdf")
