@@ -12,15 +12,15 @@
 #
 # Run (HTTP on 0.0.0.0:8000):
 #   docker run --rm -p 8000:8000 \
-#     -e BUCKET_HELPER_CONFIG=/config/s3_config.json \
-#     -v $PWD/s3_config.json:/config/s3_config.json:ro \
+#     -e BUCKET_HELPER_CONFIG=/config/settings.yaml \
+#     -v $PWD/settings.yaml:/config/settings.yaml:ro \
 #     bucket-helper
 #
 # Run CLI one-shot:
 #   docker run --rm -v $PWD:/data \
-#     -e BUCKET_HELPER_CONFIG=/data/s3_config.json \
+#     -e BUCKET_HELPER_CONFIG=/data/settings.yaml \
 #     bucket-helper \
-#     bucket-helper upload --config /data/s3_config.json --input /data/in.bin --key uploads/in.bin
+#     bucket-helper upload --config /data/settings.yaml --input /data/in.bin --key uploads/in.bin
 
 # --- base -------------------------------------------------------------------
 FROM python:3.11-slim AS base
@@ -37,15 +37,19 @@ RUN useradd --create-home --shell /bin/bash app
 WORKDIR /app
 
 # --- deps -------------------------------------------------------------------
-# Copy the package first so pip picks up pyproject.toml before we invalidate
-# the layer with source changes.
+# requirements.txt first (core deps only) so this layer caches independently
+# of source changes; the package itself (with its extras) is installed once
+# the source is in place, right below.
+COPY --chown=app:app requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
 COPY --chown=app:app pyproject.toml README.md LICENSE ./
 COPY --chown=app:app bucket_helper ./bucket_helper
 
 # Install with the API extra — the container's raison d'être is to
 # serve the HTTP surface. CLI entry points come along for free.
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir '.[api]'
+RUN pip install --no-cache-dir '.[api]'
 
 # --- runtime ----------------------------------------------------------------
 USER app
