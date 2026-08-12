@@ -1,4 +1,4 @@
-# TRIGGERS — bucket-helper
+# TRIGGERS: bucket-helper
 
 This is the user-facing, exhaustive catalogue of what `bucket-helper` can do and
 the natural-language phrasings, commands, functions, and address cues that
@@ -6,7 +6,7 @@ should invoke it.
 
 `bucket-helper` moves files to and from **AWS S3 and any S3-compatible object
 storage** (MinIO, Cloudflare R2, Backblaze B2 S3 API, DigitalOcean Spaces,
-Wasabi) via [boto3](https://boto3.amazonaws.com/). It is **remote by design** —
+Wasabi) via [boto3](https://boto3.amazonaws.com/). It is **remote by design**:
 there is no local-first mode and no GUI. It does **not** sync directory trees,
 mint presigned URLs, configure buckets (policies / lifecycle / versioning), or
 edit file contents.
@@ -54,21 +54,21 @@ same flags). There is **no GUI**.
 
 ## When NOT to use bucket-helper (SKIP)
 
-- **Non-S3-shaped storage** — Google Cloud Storage native API, Azure Blob
+- **Non-S3-shaped storage**: Google Cloud Storage native API, Azure Blob
   native API (only their S3-compat gateways qualify), plain local filesystem, or
   **FTP / SFTP** (use [sftp-helper](https://github.com/warith-harchaoui/sftp-helper)).
-- **Out-of-scope S3 features** — presigned URLs, bucket policies / IAM / ACLs,
+- **Out-of-scope S3 features**: presigned URLs, bucket policies / IAM / ACLs,
   lifecycle rules, versioning, replication, CORS, encryption, storage-class
-  transitions → use boto3 or the provider console directly.
-- **Directory-tree sync / mirroring** — "sync this folder to the bucket",
-  "mirror", rsync-style → use `rclone`, `aws s3 sync`, or `mc mirror`.
-- **Data versioning** — DVC, lakeFS.
-- **File-content work** — parsing / transforming / transcoding the bytes.
-- **A GUI or local-first mode** — does not exist here, by design.
+  transitions. Use boto3 or the provider console directly.
+- **Directory-tree sync / mirroring**: "sync this folder to the bucket",
+  "mirror", rsync-style. Use `rclone`, `aws s3 sync`, or `mc mirror`.
+- **Data versioning**: DVC, lakeFS.
+- **File-content work**: parsing / transforming / transcoding the bytes.
+- **A GUI or local-first mode**: does not exist here, by design.
 
 ## See also
 
-- [`README.md`](README.md) — features, install, quick start.
-- [`LISEZMOI.md`](LISEZMOI.md) — French mirror.
-- [`EXAMPLES.md`](EXAMPLES.md) — runnable recipes.
-- [`LANDSCAPE.md`](LANDSCAPE.md) — competitive positioning.
+- [`README.md`](README.md): features, install, quick start.
+- [`LISEZMOI.md`](LISEZMOI.md): French mirror.
+- [`EXAMPLES.md`](EXAMPLES.md): runnable recipes.
+- [`LANDSCAPE.md`](LANDSCAPE.md): competitive positioning.

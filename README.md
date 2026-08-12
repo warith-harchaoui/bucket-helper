@@ -6,7 +6,7 @@
 
 `Bucket Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
-Utility functions for **AWS S3** and any **S3-compatible object storage** — MinIO, Backblaze B2 S3 API, DigitalOcean Spaces, Cloudflare R2, Wasabi, and friends. Built on [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Same shape as [sftp-helper](https://github.com/warith-harchaoui/sftp-helper): a `credentials()` loader, the usual CRUD (`upload` / `download` / `delete` / `exists` / `list_prefix`), and a `remote_tempfile` context manager for stage-and-share flows.
+Utility functions for **AWS S3** and any **S3-compatible object storage**: MinIO, Backblaze B2 S3 API, DigitalOcean Spaces, Cloudflare R2, Wasabi, and friends. Built on [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Same shape as [sftp-helper](https://github.com/warith-harchaoui/sftp-helper): a `credentials()` loader, the usual CRUD (`upload` / `download` / `delete` / `exists` / `list_prefix`), and a `remote_tempfile` context manager for stage-and-share flows.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -15,7 +15,7 @@ Utility functions for **AWS S3** and any **S3-compatible object storage** — Mi
 ## The Promise
 
 **Remote by design.** `bucket-helper` exists to move data to and from *object
-storage you choose* — AWS, or any S3-compatible endpoint you point it at
+storage you choose*: AWS, or any S3-compatible endpoint you point it at
 (including a MinIO instance on your own network). It is deliberately **not**
 local-first and ships **no GUI**. For a remote reached over SFTP instead of
 S3, use `sftp-helper`; for downloading media from a URL, use `youtube-helper`.
@@ -34,21 +34,21 @@ S3, use `sftp-helper`; for downloading media from a URL, use `youtube-helper`.
 
 - **CRUD** against AWS S3 or any S3-compatible endpoint: `upload`, `download`,
   `delete`, `exists`, `list_prefix`.
-- **Works against any S3-compatible provider** — MinIO, Backblaze B2 S3 API,
-  DigitalOcean Spaces, Cloudflare R2, Wasabi — by pointing the `endpoint_url`
+- **Works against any S3-compatible provider**, MinIO, Backblaze B2 S3 API,
+  DigitalOcean Spaces, Cloudflare R2, Wasabi, by pointing the `endpoint_url`
   credential at it; no code changes per provider.
 - **Credentials loader** (`credentials`) resolving JSON / YAML / environment
   variables / `.env`, in that fallback order.
-- **`remote_tempfile`** context manager for stage-and-share flows — upload,
+- **`remote_tempfile`** context manager for stage-and-share flows: upload,
   hand back the object, auto-delete on block exit, no manual cleanup.
-- **Three surfaces, one behavior** — Python library, argparse CLI, click CLI
+- **Three surfaces, one behavior**: Python library, argparse CLI, click CLI
   twin (`[cli]` extra), and FastAPI HTTP surface (`[api]` extra). See the
   [multi-surface section](#multi-surface-exposure).
 - **Docker image** ships the HTTP server ready to run.
 
 ## Installation
 
-**Prerequisites** — **Python 3.10–3.13** and **git**, cross-platform:
+**Prerequisites**: **Python 3.10–3.13** and **git**, cross-platform:
 
 - 🍎 **macOS** ([Homebrew](https://brew.sh)): `brew install python git`
 - 🐧 **Ubuntu/Debian**: `sudo apt update && sudo apt install -y python3 python3-pip git`
@@ -82,14 +82,14 @@ The argparse CLI is always available. The `[cli]` extra adds the click twin.
 
 ## Configuration
 
-A ready-to-fill template is committed at [`settings.yaml.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/settings.yaml.example). Copy it to `settings.yaml` and edit in place — `settings.yaml` is gitignored so you cannot accidentally commit secrets:
+A ready-to-fill template is committed at [`settings.yaml.example`](https://github.com/warith-harchaoui/bucket-helper/blob/main/settings.yaml.example). Copy it to `settings.yaml` and edit in place: `settings.yaml` is gitignored, so you cannot accidentally commit secrets.
 
 ```bash
 cp settings.yaml.example settings.yaml
 # then edit settings.yaml with your AWS / MinIO / R2 / B2 credentials
 ```
 
-You may also write JSON instead of YAML, use a `.env`, or set environment variables — `bucket-helper` falls back in that order via `os_helper.get_config`. Required keys:
+You may also write JSON instead of YAML, use a `.env`, or set environment variables; `bucket-helper` falls back in that order via `os_helper.get_config`. Required keys:
 
 ```json
 {
@@ -105,7 +105,7 @@ Optional keys:
 | Key | Default | Notes |
 |---|---|---|
 | `s3_region` | `"us-east-1"` | AWS region; mostly cosmetic for MinIO / R2 |
-| `s3_endpoint_url` | empty (= AWS S3) | Set this for S3-compatible backends — see table below |
+| `s3_endpoint_url` | empty (= AWS S3) | Set this for S3-compatible backends: see table below |
 | `s3_prefix` | empty | Default key prefix added by `upload(...)` when no destination is given |
 | `s3_use_path_style` | `"false"` | Force path-style addressing (`endpoint/bucket/key` instead of `bucket.endpoint/key`). Typical for MinIO with custom domains. |
 | `s3_verify_ssl` | `"true"` | Disable only for dev MinIO with self-signed certs |
@@ -125,12 +125,12 @@ Set `s3_endpoint_url` to:
 
 ## Usage
 
-For the full catalog of recipes (uploads / downloads / listings, S3-compatible endpoints — MinIO / R2 / B2 / Spaces / Wasabi, temporary remote keys with auto-cleanup, mirroring with sftp-helper), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
+For the full catalog of recipes (uploads / downloads / listings, S3-compatible endpoints such as MinIO / R2 / B2 / Spaces / Wasabi, temporary remote keys with auto-cleanup, mirroring with sftp-helper), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
 
 ```python
 import bucket_helper as bh
 
-# Load creds — JSON / YAML / env / .env (auto-fallback in that order)
+# Load creds: JSON / YAML / env / .env (auto-fallback in that order)
 cred = bh.credentials("path/to/settings.yaml")
 
 # Upload a local file
@@ -190,16 +190,16 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 
 Every public function in the library is also exposed as:
 
-- **argparse CLI** — `bucket-helper <subcommand>` (installed by default).
-- **click CLI** — `bucket-helper-click <subcommand>` (install `[cli]` extra).
-- **FastAPI HTTP** — `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
-- **MCP** — `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
+- **argparse CLI**: `bucket-helper <subcommand>` (installed by default).
+- **click CLI**: `bucket-helper-click <subcommand>` (install `[cli]` extra).
+- **FastAPI HTTP**: `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
+- **MCP**: `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
   any MCP-aware agent host (install `[mcp]` extra).
 
-Both CLIs share the same subcommand names and flags — pick your favourite.
+Both CLIs share the same subcommand names and flags; pick your favourite.
 
-The exhaustive catalogue of what triggers the toolkit — natural-language
-phrasings, commands, functions, address cues, and explicit SKIP rules — lives in
+The exhaustive catalogue of what triggers the toolkit (natural-language
+phrasings, commands, functions, address cues, and explicit SKIP rules) lives in
 [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md).
 
 ## CLI examples
@@ -215,7 +215,7 @@ bucket-helper make-bucket --config settings.yaml --bucket new-bucket
 bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
 bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
 
-# click CLI — same verbs, same flags
+# click CLI: same verbs, same flags
 bucket-helper-click upload --config settings.yaml --input local.txt --key folder/uploaded.txt
 ```
 
@@ -241,7 +241,7 @@ docker run --rm -p 8000:8000 \
 ```
 
 See also: [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (what invokes the toolkit) and
-[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan — no GUI ships; bucket-helper is remote object-storage plumbing).
+[GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (visual product design plan; no GUI ships, bucket-helper is remote object-storage plumbing).
 
 ## Author
 
@@ -253,4 +253,4 @@ Special thanks to [Mohamed Chelali](https://mchelali.github.io) and [Bachir Zerr
 
 ## License
 
-This project is licensed under the BSD-3-Clause License — see the [LICENSE](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License; see the [LICENSE](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) file for details.
