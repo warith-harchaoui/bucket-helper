@@ -70,12 +70,13 @@ pip install "bucket-helper[api]"       # FastAPI HTTP surface
 ### From source (no PyPI)
 
 ```bash
-# Core library
-pip install bucket-helper
+git clone https://github.com/warith-harchaoui/bucket-helper.git
+cd bucket-helper
+pip install -e .
 
 # Optional surfaces
-pip install "bucket-helper[cli]"
-pip install "bucket-helper[api]"
+pip install -e ".[cli]"
+pip install -e ".[api]"
 ```
 
 The argparse CLI is always available. The `[cli]` extra adds the click twin.
