@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-15
+
 ### Fixed
 
 - **CLI**: an exception from the library (a boto3 `ClientError`, a malformed
