@@ -503,7 +503,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     # Every subparser sets ``func`` via ``set_defaults`` — no dispatch table
     # needed, argparse resolved it for us.
-    return int(args.func(args))
+    try:
+        return int(args.func(args))
+    except Exception as err:  # noqa: BLE001 — last resort: turn a library
+        # exception (a boto3 ClientError, the library's own RuntimeError/
+        # ValueError, ...) into a clean one-line message instead of a raw
+        # traceback. argparse's own control flow (--help, a bad flag) exits
+        # via SystemExit before reaching here, so this never intercepts it.
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":  # pragma: no cover

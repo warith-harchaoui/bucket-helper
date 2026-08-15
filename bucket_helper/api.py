@@ -64,8 +64,10 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _pkg_version
 from pathlib import Path
 
+import botocore.exceptions
+
 try:
-    from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+    from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
     from fastapi.responses import FileResponse, JSONResponse
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
@@ -116,6 +118,38 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+
+@app.exception_handler(ValueError)
+async def _value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
+    """Map a library ``ValueError`` (e.g. a malformed ``s3://`` URI) to 400.
+
+    Without this, FastAPI's default handler turns it into a generic 500,
+    indistinguishable from an actual server bug — this is ordinary
+    client-input validation, not a server failure.
+    """
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(botocore.exceptions.ClientError)
+async def _client_error_handler(
+    request: Request, exc: botocore.exceptions.ClientError
+) -> JSONResponse:
+    """Map an S3-side failure (auth, missing bucket, throttling, ...) to 502.
+
+    The server did its job correctly; the *upstream* S3/S3-compatible
+    endpoint is what failed — 502 (Bad Gateway) says that, 500 does not.
+    """
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
+
+
+@app.exception_handler(RuntimeError)
+async def _runtime_error_handler(request: Request, exc: RuntimeError) -> JSONResponse:
+    """Map the library's own ``RuntimeError`` (``delete()``'s failure path,
+    which already wraps a ``ClientError`` with context) to 502, same
+    reasoning as :func:`_client_error_handler`.
+    """
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
 
 
 # The set of credential keys the API accepts as form fields. Kept in

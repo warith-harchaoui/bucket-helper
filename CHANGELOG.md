@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **CLI**: an exception from the library (a boto3 `ClientError`, a malformed
+  `s3://` URI, ...) now prints one clean `Error: ...` line to stderr and
+  exits 1, instead of a raw Python traceback, on both CLI twins.
+  `bucket-helper-click`'s console-script entry point now points at a new
+  `cli_click.main()` wrapper (was the bare `cli` group); its docstring's
+  since-incorrect claim that "click handles the formatting" is corrected.
+- **API**: a library `ValueError` (malformed input, e.g. an `s3://` URI with
+  no bucket) now maps to HTTP 400; an upstream S3/S3-compatible failure
+  (`botocore.exceptions.ClientError`, or the library's own `RuntimeError`
+  wrapping one) now maps to 502 — previously all three collapsed into
+  FastAPI's generic 500, indistinguishable from an actual server bug.
+
 ## [1.1.0] - 2026-08-08
 
 ### Added

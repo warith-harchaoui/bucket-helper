@@ -98,3 +98,36 @@ def test_click_subcommand_help_exits_zero(sub):
     runner = CliRunner()
     result = runner.invoke(cli, [sub, "--help"])
     assert result.exit_code == 0
+
+
+def test_argparse_main_prints_clean_error_not_traceback(capsys, monkeypatch):
+    """A library exception (malformed ``s3://`` URI) prints ``Error: ...`` +
+    returns 1, instead of propagating as a raw Python traceback."""
+    from bucket_helper.cli_argparse import main
+
+    for k in ("S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET", "S3_HTTPS"):
+        monkeypatch.setenv(k, "x")
+    code = main(["strip-path", "--address", "s3:///no-bucket-here"])
+    assert code == 1
+    captured = capsys.readouterr()
+    assert captured.err.startswith("Error: ")
+    assert "Traceback" not in captured.err
+
+
+def test_click_main_prints_clean_error_not_traceback(monkeypatch, capsys):
+    """Same guarantee as the argparse twin, for ``bucket-helper-click``'s
+    actual console-script entry point (``main()``, not the bare ``cli``
+    group — see its docstring for why the wrapper is needed)."""
+    from bucket_helper.cli_click import main
+
+    for k in ("S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET", "S3_HTTPS"):
+        monkeypatch.setenv(k, "x")
+    monkeypatch.setattr(
+        "sys.argv", ["bucket-helper-click", "strip-path", "--address", "s3:///no-bucket-here"]
+    )
+    with pytest.raises(SystemExit) as exc:
+        main()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert captured.err.startswith("Error: ")
+    assert "Traceback" not in captured.err

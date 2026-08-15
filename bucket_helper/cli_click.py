@@ -15,8 +15,9 @@ Design notes
 - Flags reuse the argparse names (``--input`` / ``--key`` / …) rather
   than the more idiomatic click positional style — consistency across
   the two CLIs beats micro-idiomaticity here.
-- Errors from the library propagate unchanged; click handles the
-  formatting.
+- A library exception surfaces as a clean ``Error: ...`` line + exit 1
+  (see :func:`main`), not a raw traceback; click's own control flow
+  (usage errors, ``--help``) is untouched.
 
 Usage Example
 -------------
@@ -244,5 +245,25 @@ def strip_path_cmd(config: str | None, address: str) -> None:
     click.echo(strip_s3_path(address, cred))
 
 
+def main() -> None:
+    """Console entry point (``bucket-helper-click``).
+
+    Click's own ``main()`` only special-cases ``ClickException``/``Abort``
+    (and a broken pipe); a plain library exception (a boto3 ``ClientError``,
+    the library's own ``RuntimeError``/``ValueError``, ...) would otherwise
+    propagate as a raw Python traceback instead of a clean CLI error. This
+    wraps the whole invocation and translates that last case into a one-line
+    stderr message + exit 1 — click's own control flow (usage errors,
+    ``--help``, an explicit ``sys.exit(1)`` in a subcommand) already raises
+    ``SystemExit``, a ``BaseException`` this does not catch, so it passes
+    through untouched.
+    """
+    try:
+        cli()
+    except Exception as err:  # noqa: BLE001 — last resort: see docstring
+        click.echo(f"Error: {err}", err=True)
+        sys.exit(1)
+
+
 if __name__ == "__main__":  # pragma: no cover
-    cli()
+    main()

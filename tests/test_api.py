@@ -95,3 +95,37 @@ def test_missing_cred_returns_400(client):
     # bit is that we do not 500 on a missing credential.
     assert r.status_code == 400
     assert "credential" in r.json().get("detail", "").lower()
+
+
+_FAKE_CRED = {
+    "s3_access_key": "AKIAFAKEFAKEFAKEFAKE",
+    "s3_secret_key": "fakesecretfakesecretfakesecretfakesecret",
+    "s3_bucket": "test-bucket",
+    "s3_https": "https://test-bucket.s3.amazonaws.com",
+    "s3_region": "us-east-1",
+}
+
+
+def test_malformed_s3_address_returns_400_not_500(client):
+    """A malformed ``s3://`` URI (empty bucket) is a client-input error: 400.
+
+    ``_split_s3_address`` raises ``ValueError`` for this — previously
+    uncaught, it fell through to FastAPI's generic 500 handler.
+    """
+    r = client.post("/strip-path", data={"address": "s3:///no-bucket-here", **_FAKE_CRED})
+    assert r.status_code == 400
+
+
+def test_s3_client_error_returns_502_not_500(client):
+    """An upstream S3 failure (e.g. a bucket that doesn't exist) maps to 502.
+
+    ``exists()`` only swallows 404/NoSuchKey/NotFound; a missing *bucket*
+    (``NoSuchBucket``) re-raises the real ``botocore.exceptions.ClientError``
+    — previously uncaught here, it fell through to a generic 500.
+    """
+    moto = pytest.importorskip("moto")
+    with moto.mock_aws():
+        # No bucket is ever created under the mock, so this raises
+        # NoSuchBucket -- a real ClientError, not the caught 404/NoSuchKey.
+        r = client.post("/exists", data={"key": "some/key", **_FAKE_CRED})
+    assert r.status_code == 502
