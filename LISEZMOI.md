@@ -8,6 +8,18 @@
 
 Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** : MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`) et un context manager `remote_tempfile` pour le stage-and-share.
 
+Le stockage objet range les fichiers comme des blocs plats et adressables,
+un bucket plus une clé, par exemple `my-bucket/folder/file.txt`, plutôt que
+dans une arborescence de dossiers sur un disque dur : rien à créer à
+l'avance, aucune limite au nombre de fichiers qui s'accumulent au même
+endroit, et chaque objet se retrouve directement depuis une URL. Amazon Web
+Services a construit la première version populaire de ce principe : le
+service de stockage simple (_Simple Storage Service_ ou S3), dont le
+protocole est devenu la norme de fait. MinIO, Backblaze B2, DigitalOcean
+Spaces, Cloudflare R2 et Wasabi parlent tous la même API S3 ; `bucket-helper`
+fonctionne donc sans changement contre n'importe lequel d'entre eux, seule
+l'URL du point de terminaison change.
+
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
