@@ -18,6 +18,8 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 # FastAPI is in the ``[api]`` optional extra — skip cleanly otherwise.
@@ -129,3 +131,28 @@ def test_s3_client_error_returns_502_not_500(client):
         # NoSuchBucket -- a real ClientError, not the caught 404/NoSuchKey.
         r = client.post("/exists", data={"key": "some/key", **_FAKE_CRED})
     assert r.status_code == 502
+
+
+def test_download_endpoint_cleans_up_temp_dir_on_failure(client):
+    """A failed ``/download`` (key doesn't exist) must not leak its temp dir.
+
+    ``download_endpoint`` creates a request-scoped temp dir *before* calling
+    the library's ``download()``. Unlike ``upload_endpoint`` (wrapped in
+    try/finally), the download call used to run unguarded: if ``download()``
+    raised (missing key, S3 error, ...), the temp dir was never cleaned up —
+    a client repeatedly requesting a bad key could exhaust server disk.
+    """
+    import glob
+    import tempfile
+
+    boto3 = pytest.importorskip("boto3")
+    moto = pytest.importorskip("moto")
+    with moto.mock_aws():
+        boto3.client("s3", region_name="us-east-1").create_bucket(
+            Bucket=_FAKE_CRED["s3_bucket"]
+        )
+        before = set(glob.glob(os.path.join(tempfile.gettempdir(), "bucket-helper-*")))
+        r = client.post("/download", data={"key": "does/not/exist.txt", **_FAKE_CRED})
+        after = set(glob.glob(os.path.join(tempfile.gettempdir(), "bucket-helper-*")))
+    assert r.status_code == 502
+    assert after == before, f"download_endpoint leaked a temp dir: {after - before}"

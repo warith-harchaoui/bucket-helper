@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **API**: `/download` leaked its request-scoped temp directory on every
+  failed download (missing key, credential error, upstream S3 failure) —
+  `upload_endpoint` correctly cleaned up via `try/finally`, but
+  `download_endpoint` called the library's `download()` unguarded before
+  its deferred background cleanup was ever scheduled. A client repeatedly
+  requesting a bad key could exhaust server disk. Fixed by cleaning up
+  immediately on failure, same as every other failure-cleanup path in the
+  suite.
+
 ## [1.1.1] - 2026-08-15
 
 ### Fixed

@@ -415,7 +415,15 @@ def download_endpoint(
     # Preserve the suffix — clients that stream the response benefit.
     ext = Path(key).suffix or ".bin"
     dst = tmp / f"download{ext}"
-    download(s3_address=key, local_path=str(dst), cred=cred)
+    try:
+        download(s3_address=key, local_path=str(dst), cred=cred)
+    except Exception:
+        # download() never wrote a usable file (missing key, S3 error, ...) —
+        # nothing left to stream, so reclaim the temp dir immediately instead
+        # of leaking it: the deferred background cleanup below is never
+        # reached once this re-raises.
+        _cleanup(tmp)
+        raise
     # Defer cleanup to a background task: the file must still exist while
     # FileResponse streams it, so we can only wipe it once the response is sent.
     background.add_task(_cleanup, tmp)
