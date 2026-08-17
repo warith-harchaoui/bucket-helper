@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.2] - 2026-08-17
 
 ### Fixed
 
@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   requesting a bad key could exhaust server disk. Fixed by cleaning up
   immediately on failure, same as every other failure-cleanup path in the
   suite.
+
+### Documentation
+
+- README.md/LISEZMOI.md's opening line used "S3" and "S3-compatible object
+  storage" without ever explaining either, leaving a first-time reader with
+  no foothold. Added a short paragraph grounding object storage against a
+  familiar mental model (a flat, addressable bucket-plus-key store vs. a
+  folder tree on a hard drive), glossing the S3 acronym, and explaining why
+  the S3-compatible ecosystem (MinIO, R2, B2, Spaces, Wasabi) works as one
+  shared protocol.
 
 ## [1.1.1] - 2026-08-15
 
