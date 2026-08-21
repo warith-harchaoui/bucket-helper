@@ -254,8 +254,9 @@ def upload(
         Credentials dict from :func:`credentials`.
     s3_address : str, optional
         Destination — either ``"s3://bucket/key"`` or a key under the
-        default bucket. If empty, a content-hashed name is generated
-        under ``cred["s3_prefix"]`` (if set) of the default bucket.
+        default bucket. If empty, a random unique hex name is generated
+        (not derived from the file's content) under ``cred["s3_prefix"]``
+        (if set) of the default bucket.
     content_type : str, optional
         Override the MIME ``Content-Type`` header. If None, boto3 lets the
         server default (typically ``application/octet-stream``).

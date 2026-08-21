@@ -62,7 +62,7 @@ values.
 uri = bh.upload("invoice.pdf", cred, "invoices/2026/06.pdf")
 # uri == "s3://my-bucket/invoices/2026/06.pdf"
 
-# Upload with no destination: content-hashed name under cred["s3_prefix"]
+# Upload with no destination: random unique name under cred["s3_prefix"]
 uri = bh.upload("snapshot.bin", cred)
 # uri == "s3://my-bucket/<random_hex>.bin"
 

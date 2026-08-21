@@ -341,7 +341,7 @@ def _add_upload(sub: argparse._SubParsersAction) -> None:
         "--key",
         default=None,
         help="Destination — 's3://bucket/key' or a key under the default bucket. "
-        "Empty = auto-generate a hex-hash key under cred['s3_prefix'].",
+        "Empty = auto-generate a random hex key under cred['s3_prefix'].",
     )
     p.add_argument(
         "--content-type",

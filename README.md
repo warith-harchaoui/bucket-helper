@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/bucket-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/warith-harchaoui/bucket-helper/blob/main/LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#)
 
-`Bucket Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
+`Bucket Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence, each published on PyPI behind its own green CI gate (pytest plus ruff, both blocking) and semantic-versioned releases.
 
 Utility functions for **AWS S3** and any **S3-compatible object storage**: MinIO, Backblaze B2 S3 API, DigitalOcean Spaces, Cloudflare R2, Wasabi, and friends. Built on [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Same shape as [sftp-helper](https://github.com/warith-harchaoui/sftp-helper): a `credentials()` loader, the usual CRUD (`upload` / `download` / `delete` / `exists` / `list_prefix`), and a `remote_tempfile` context manager for stage-and-share flows.
 
