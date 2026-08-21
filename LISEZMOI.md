@@ -34,6 +34,16 @@ ne fournit **aucune interface graphique**. Pour un distant joint en SFTP
 plutôt qu'en S3, utilisez `sftp-helper` ; pour télécharger un média depuis une
 URL, utilisez `youtube-helper`.
 
+Cette portée distante est justement l'endroit où « éprouvé en production »
+doit se vérifier, pas se proclamer. Une CI bloquante tourne à chaque envoi :
+la suite de tests exerce le client S3 contre un S3 simulé par moto, puis
+ruff vérifie le style ; rien ne fusionne sur `main` si le passage est rouge.
+Le paquet a déjà connu neuf versions sémantiques publiées sur PyPI, de
+`v0.2.2` jusqu'à la `v1.1.2` actuelle (l'historique complet se lit avec
+`git tag`). Il dépend d'`os-helper`, le petit socle commun à toute la suite
+AI Helpers pour la journalisation et la gestion de fichiers ; rien ici ne
+réinvente cette couche.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)

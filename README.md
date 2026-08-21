@@ -30,6 +30,15 @@ storage you choose*: AWS, or any S3-compatible endpoint you point it at
 local-first and ships **no GUI**. For a remote reached over SFTP instead of
 S3, use `sftp-helper`; for downloading media from a URL, use `youtube-helper`.
 
+That remote reach is also where "battle-tested" has to mean something
+checkable, not a slogan. Every push runs a blocking CI gate: the test suite
+exercises the S3 client against a moto-mocked backend, then ruff checks
+style; nothing merges to `main` on a red run. The package has shipped
+through nine semantic-versioned releases on PyPI, from `v0.2.2` to the
+current `v1.1.2` (the tag history is visible with `git tag`). It depends
+on `os-helper`, the small foundation package the whole AI Helpers suite
+shares for logging and file handling; nothing here reinvents that layer.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
