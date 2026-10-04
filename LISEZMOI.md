@@ -20,9 +20,9 @@ Spaces, Cloudflare R2 et Wasabi parlent tous la même API S3 ; `bucket-helper`
 fonctionne donc sans changement contre n'importe lequel d'entre eux, seule
 l'URL du point de terminaison change.
 
-[🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
+[🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://deraison.ai/ai-helpers)
 
 ## La promesse
 
@@ -46,7 +46,7 @@ réinvente cette couche.
 
 ## Documentation
 
-[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
+[💻 Documentation](https://deraison.ai/ai-helpers/docs/bucket-helper-doc/)
 
 [🗺️ Paysage](https://github.com/warith-harchaoui/bucket-helper/blob/main/PAYSAGE.md)
 
@@ -80,7 +80,7 @@ réinvente cette couche.
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git`
 
-On recommande de travailler dans un environnement Python. Si vous ne savez pas en créer un, voir [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
+On recommande de travailler dans un environnement Python. Si vous ne savez pas en créer un, voir [🥸 Tech tips](https://deraison.ai/4ml/#install).
 
 ### Depuis PyPI (recommandé)
 

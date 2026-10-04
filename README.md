@@ -18,9 +18,9 @@ Backblaze B2, DigitalOcean Spaces, Cloudflare R2, and Wasabi all speak the
 same S3 API, so `bucket-helper` runs unchanged against any of them; only the
 endpoint URL changes.
 
-[🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
+[🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/logo.png)](https://deraison.ai/ai-helpers)
 
 ## The Promise
 
@@ -41,7 +41,7 @@ shares for logging and file handling; nothing here reinvents that layer.
 
 ## Documentation
 
-[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/bucket-helper-doc/)
+[💻 Documentation](https://deraison.ai/ai-helpers/docs/bucket-helper-doc/)
 
 [🗺️ Landscape](https://github.com/warith-harchaoui/bucket-helper/blob/main/LANDSCAPE.md)
 
@@ -73,7 +73,7 @@ shares for logging and file handling; nothing here reinvents that layer.
 - 🐧 **Ubuntu/Debian**: `sudo apt update && sudo apt install -y python3 python3-pip git`
 - 🪟 **Windows** (PowerShell): `winget install Python.Python.3.12 Git.Git`
 
-We recommend using Python environments. Check this link if you're unfamiliar with setting one up: [🥸 Tech tips](https://harchaoui.org/warith/4ml/#install).
+We recommend using Python environments. Check this link if you're unfamiliar with setting one up: [🥸 Tech tips](https://deraison.ai/4ml/#install).
 
 ### From PyPI (recommended)
 
