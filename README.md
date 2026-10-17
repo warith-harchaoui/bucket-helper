@@ -174,13 +174,13 @@ bh.delete(uri, cred)
 
 ```python
 cred = {
-    "s3_access_key":      "minioadmin",
-    "s3_secret_key":      "minioadmin",
-    "s3_bucket":          "uploads",
-    "s3_https":           "http://minio.example.com:9000/uploads",
-    "s3_endpoint_url":    "http://minio.example.com:9000",
-    "s3_use_path_style":  "true",
-    "s3_region":          "us-east-1",  # MinIO accepts any region string
+    "s3_access_key": "minioadmin",
+    "s3_secret_key": "minioadmin",
+    "s3_bucket": "uploads",
+    "s3_https": "http://minio.example.com:9000/uploads",
+    "s3_endpoint_url": "http://minio.example.com:9000",
+    "s3_use_path_style": "true",
+    "s3_region": "us-east-1",  # MinIO accepts any region string
 }
 
 bh.make_bucket("uploads", cred)
@@ -202,7 +202,9 @@ cred = bh.credentials("path/to/settings.yaml")
 with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url):
     bh.upload("payload.json", cred, s3_addr, content_type="application/json")
     # Hand the URL to something that fetches it once.
-    requests.post("https://hook.example.com/process", json={"input_url": public_url}).raise_for_status()
+    requests.post(
+        "https://hook.example.com/process", json={"input_url": public_url}
+    ).raise_for_status()
 # Object is gone here, no manual cleanup.
 ```
 

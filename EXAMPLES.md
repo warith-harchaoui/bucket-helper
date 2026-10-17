@@ -142,13 +142,13 @@ Set `s3_endpoint_url` on the credentials dict and (for MinIO especially)
 
 ```python
 cred = {
-    "s3_access_key":      "minioadmin",
-    "s3_secret_key":      "minioadmin",
-    "s3_bucket":          "uploads",
-    "s3_https":           "http://minio.example.com:9000/uploads",
-    "s3_endpoint_url":    "http://minio.example.com:9000",
-    "s3_use_path_style":  "true",
-    "s3_region":          "us-east-1",  # MinIO accepts any region string
+    "s3_access_key": "minioadmin",
+    "s3_secret_key": "minioadmin",
+    "s3_bucket": "uploads",
+    "s3_https": "http://minio.example.com:9000/uploads",
+    "s3_endpoint_url": "http://minio.example.com:9000",
+    "s3_use_path_style": "true",
+    "s3_region": "us-east-1",  # MinIO accepts any region string
 }
 
 bh.make_bucket("uploads", cred)
@@ -169,7 +169,7 @@ import sftp_helper as sftph
 
 osh.verbosity(2)
 
-s3_cred  = bh.credentials("path/to/settings.yaml")
+s3_cred = bh.credentials("path/to/settings.yaml")
 sftp_cred = sftph.credentials("path/to/settings.yaml")
 
 # Long-term archive on S3
