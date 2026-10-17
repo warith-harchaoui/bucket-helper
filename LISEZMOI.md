@@ -227,6 +227,17 @@ Le catalogue exhaustif de ce qui déclenche la boîte à outils (formulations en
 langage naturel, commandes, fonctions, indices d'adresse, règles SKIP
 explicites) se trouve dans [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md).
 
+### En tant que skill d'agent
+
+`skills/bucket-helper/` empaquette bucket-helper comme **skill Claude** *et* skill
+**OpenCode**, pour qu'un agent puisse s'en saisir à votre place. Voir
+[`skills/README.md`](https://github.com/warith-harchaoui/bucket-helper/blob/main/skills/README.md) pour l'installer (liens
+symboliques vers `~/.claude/skills/` et `~/.opencode/skills/`) et
+[`TRIGGERS.md`](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) pour le catalogue exhaustif des
+déclencheurs — `scripts/check_triggers.py` maintient la description du skill
+alignée dessus ; la suite de tests échoue si une capacité cesse d'être
+nommée.
+
 ## Exemples CLI
 
 ```bash
