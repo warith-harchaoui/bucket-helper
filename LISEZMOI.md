@@ -278,6 +278,14 @@ docker run --rm -p 8000:8000 \
   bucket-helper
 ```
 
+Ou via Compose, qui porte pour vous le port, le montage des identifiants et une
+sonde de santé — et, derrière `--profile dev`, un MinIO local à qui parler :
+
+```bash
+docker compose up --build
+docker compose --profile dev up --build
+```
+
 Voir aussi : [TRIGGERS.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/TRIGGERS.md) (ce qui invoque la boîte à outils) et
 [GUI.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/GUI.md) (plan produit visuel ; aucune GUI n'est livrée, bucket-helper est de la plomberie de stockage objet distant).
 

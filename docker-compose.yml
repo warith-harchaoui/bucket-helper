@@ -1,0 +1,93 @@
+# bucket-helper — Compose entry point for the container image next to this file.
+#
+#   docker compose up --build                 # HTTP surface on http://localhost:8000
+#   docker compose --profile dev up --build   # ... plus a local MinIO to talk to
+#   docker compose run --rm bucket-helper bucket-helper --help
+#
+# The image installs the [api] extra, so the FastAPI app is what it serves.
+# Per the suite's rule, MCP is never a second implementation: when the [mcp]
+# extra is present, fastapi-mcp mounts /mcp onto this very app and each tool
+# *is* one of these routes.
+#
+# Credentials come from settings.yaml, mounted read-only — never baked into
+# the image and never passed as plain environment variables. Copy the template
+# first: cp settings.yaml.example settings.yaml
+#
+# The `dev` profile
+# -----------------
+# bucket-helper speaks S3, and settings.yaml.example already anticipates
+# S3-compatible stores. The profile brings up MinIO so the whole surface can be
+# exercised without an AWS account or a real bucket. Point settings.yaml at it:
+#
+#   s3_endpoint_url: "http://minio:9000"
+#   s3_access_key: "minioadmin"
+#   s3_secret_key: "minioadmin"
+#   s3_bucket: "dev"
+#   s3_https: "http://localhost:9000/dev"
+#   s3_use_path_style: "true"    # MinIO wants path-style addressing
+#   s3_verify_ssl: "false"       # plain HTTP inside the compose network
+#
+# Create the bucket once MinIO is up, via its console at http://localhost:9001
+# (minioadmin / minioadmin).
+
+services:
+  bucket-helper:
+    build: .
+    image: bucket-helper:local
+    ports:
+      - "${BUCKET_HELPER_PORT:-8000}:8000"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      BUCKET_HELPER_HOST: 0.0.0.0
+      BUCKET_HELPER_PORT: "8000"
+      BUCKET_HELPER_CONFIG: /config/settings.yaml
+    volumes:
+      # Long form on purpose: with create_host_path off, a missing
+      # settings.yaml stops the service with a clear error instead of being
+      # silently invented as an empty *directory* at that path, which is what
+      # the short form does and which fails much later and much less clearly.
+      # Read-only: the service reads credentials, it never rewrites them.
+      - type: bind
+        source: ./settings.yaml
+        target: /config/settings.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      # python, not curl: the slim image ships no HTTP client, and adding one
+      # just for a probe would grow the image for nothing.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          sys.exit(0 if urllib.request.urlopen("http://localhost:8000/health", timeout=3).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  minio:
+    profiles: [dev]
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # web console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - bucket-helper-minio:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  bucket-helper-minio:
