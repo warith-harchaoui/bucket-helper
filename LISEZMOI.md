@@ -173,9 +173,38 @@ bh.download(uri, "downloaded.txt", cred)
 for key in bh.list_prefix("folder/", cred):
     print(key)
 
+# Lister en sachant si quelque chose a été laissé de côté
+keys, tronque = bh.list_prefix_page("folder/", cred, max_keys=100)
+if tronque:
+    print("il y a plus de 100 objets sous folder/")
+
 # Supprimer
 bh.delete(uri, cred)
 ```
+
+## Le listing est plafonné — il le dit
+
+`list_prefix` renvoie **au plus `max_keys` clés** (1000 par défaut). C'est une
+borne volontaire, pas un défaut : S3 pagine ses réponses et lister sans limite
+un préfixe volumineux est rarement ce que veut l'appelant.
+
+Ce qu'il ne sait pas faire, c'est vous dire si le plafond a été atteint. Une
+réponse de 1000 clés est identique selon que le préfixe contient exactement 1000
+objets ou cinquante mille — ce qui compte dès qu'un programme agit sur la liste
+au lieu d'un humain qui la lit. Utilisez `list_prefix_page` quand la distinction
+importe :
+
+```python
+keys, tronque = bh.list_prefix_page("logs/", cred, max_keys=500)
+if tronque:
+    ...  # il y a autre chose derrière ces 500
+```
+
+La fonction demande à S3 une clé au-delà du plafond puis indique si elle est
+arrivée : le surcoût est d'une seule clé. Les CLI émettent un avertissement sur
+**stderr** quand un listing est tronqué (les clés restent sur stdout, les
+pipelines ne changent pas) et `POST /list` renvoie `truncated` à côté de `keys`
+et `count`.
 
 ## Exemple MinIO
 

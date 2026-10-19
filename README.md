@@ -162,13 +162,40 @@ assert bh.exists(uri, cred)
 # Download
 bh.download(uri, "downloaded.txt", cred)
 
-# List
+# List (returns at most max_keys, 1000 by default)
 for key in bh.list_prefix("folder/", cred):
     print(key)
+
+# List and find out whether anything was left behind
+keys, truncated = bh.list_prefix_page("folder/", cred, max_keys=100)
+if truncated:
+    print("there are more than 100 objects under folder/")
 
 # Delete
 bh.delete(uri, cred)
 ```
+
+## Listing is capped, and says so
+
+`list_prefix` returns **at most `max_keys` keys** (1000 by default). That is a
+deliberate bound, not a bug — S3 pages its responses and an unbounded listing of
+a large prefix is rarely what a caller wants.
+
+What it cannot do is tell you whether the cap was reached. A response of 1000
+keys looks identical whether the prefix holds exactly 1000 objects or fifty
+thousand, which matters as soon as a program acts on the list rather than a
+human reading it. Use `list_prefix_page` when that distinction counts:
+
+```python
+keys, truncated = bh.list_prefix_page("logs/", cred, max_keys=500)
+if truncated:
+    ...  # there is more behind these 500
+```
+
+It asks S3 for one key beyond the cap and reports whether it arrived, so the
+extra cost is a single key. The CLIs print a warning to **stderr** when a
+listing is truncated (keys stay on stdout, so pipelines are unaffected), and
+`POST /list` returns `truncated` alongside `keys` and `count`.
 
 ## MinIO example
 

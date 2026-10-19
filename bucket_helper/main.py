@@ -368,6 +368,47 @@ def list_prefix(prefix: str, cred: dict, *, max_keys: int = 1000) -> list[str]:
     return keys
 
 
+def list_prefix_page(prefix: str, cred: dict, *, max_keys: int = 1000) -> tuple[list[str], bool]:
+    """List keys under ``prefix``, and say whether more were left behind.
+
+    :func:`list_prefix` returns at most ``max_keys`` keys and cannot tell the
+    caller whether that was all of them. For a human reading a terminal that is
+    a mild annoyance; for a program it is a correctness problem, because a
+    response of 1000 keys looks identical whether the prefix holds exactly 1000
+    objects or fifty thousand.
+
+    This asks S3 for one key more than it will return. If that extra key
+    arrives, there is more behind it. The cost is a single additional key, and
+    it turns an ambiguous answer into a definite one.
+
+    Parameters
+    ----------
+    prefix : str
+        Key prefix to list under, in the credentials' default bucket.
+    cred : dict
+        Credentials, as accepted by :func:`get_client_s3`.
+    max_keys : int, default 1000
+        Maximum number of keys to return.
+
+    Returns
+    -------
+    tuple[list[str], bool]
+        The keys (at most ``max_keys`` of them), and ``True`` when S3 held
+        more than that under the prefix.
+
+    Examples
+    --------
+    >>> keys, truncated = list_prefix_page("logs/", cred, max_keys=10)  # doctest: +SKIP
+    >>> if truncated:  # doctest: +SKIP
+    ...     print("there are more than 10 objects under logs/")
+    """
+    # One extra key is the whole trick: present ⇒ truncated.
+    probed = list_prefix(prefix, cred, max_keys=max_keys + 1)
+    if len(probed) > max_keys:
+        return probed[:max_keys], True
+    return probed, False
+
+
 def make_bucket(bucket: str, cred: dict) -> None:
     """Create a bucket if it doesn't exist.
 

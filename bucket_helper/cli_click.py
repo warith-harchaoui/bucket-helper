@@ -51,7 +51,7 @@ from . import (
     delete,
     download,
     exists,
-    list_prefix,
+    list_prefix_page,
     make_bucket,
     remote_tempfile,
     strip_s3_path,
@@ -197,8 +197,18 @@ def exists_(config: str | None, key: str) -> None:
 def list_cmd(config: str | None, prefix: str, max_keys: int) -> None:
     """List keys under a prefix in the default bucket."""
     cred = credentials(config)
-    for key in list_prefix(prefix=prefix, cred=cred, max_keys=max_keys):
+    keys, truncated = list_prefix_page(prefix=prefix, cred=cred, max_keys=max_keys)
+    for key in keys:
         click.echo(key)
+    # Keys stay on stdout so pipelines are unaffected; the caveat goes to
+    # stderr. Printing nothing here would let a capped listing read as a
+    # complete one, which is how an `xargs` over it quietly misses objects.
+    if truncated:
+        click.echo(
+            f"warning: more than {max_keys} keys under {prefix!r}; "
+            "raise --max-keys to see the rest.",
+            err=True,
+        )
 
 
 # ---------------------------------------------------------------------------

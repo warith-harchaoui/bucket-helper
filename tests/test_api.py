@@ -156,3 +156,50 @@ def test_download_endpoint_cleans_up_temp_dir_on_failure(client):
         after = set(glob.glob(os.path.join(tempfile.gettempdir(), "bucket-helper-*")))
     assert r.status_code == 502
     assert after == before, f"download_endpoint leaked a temp dir: {after - before}"
+
+
+def test_list_response_declares_whether_it_was_truncated(client, monkeypatch):
+    """A programmatic client cannot act on a capped list it cannot detect.
+
+    `count` is the length of the response, which reads naturally as "the number
+    of objects under this prefix" -- so 1000 keys looked the same whether the
+    prefix held exactly 1000 objects or fifty thousand. The payload now carries
+    `truncated` alongside it. Driven against moto, so this exercises the real
+    boto3 pagination path rather than asserting on source text.
+    """
+    import io
+
+    from moto import mock_aws
+
+    import bucket_helper as bh
+    from bucket_helper.main import get_client_s3
+
+    cred = {
+        "s3_access_key": "AKIAFAKEFAKEFAKEFAKE",
+        "s3_secret_key": "fakesecretfakesecretfakesecretfakesecret",
+        "s3_bucket": "trunc-bucket",
+        "s3_https": "https://trunc-bucket.s3.amazonaws.com",
+        "s3_region": "us-east-1",
+    }
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", cred["s3_access_key"])
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", cred["s3_secret_key"])
+    monkeypatch.setenv("AWS_DEFAULT_REGION", cred["s3_region"])
+
+    with mock_aws():
+        bh.make_bucket(cred["s3_bucket"], cred)
+        with get_client_s3(cred) as s3:
+            for i in range(7):
+                s3.upload_fileobj(io.BytesIO(b"x"), cred["s3_bucket"], f"p/{i}")
+
+        # Cap below the object count: truncated must be True.
+        r = client.post("/list", data={**cred, "prefix": "p/", "max_keys": 3})
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["count"] == 3
+        assert body["truncated"] is True
+
+        # Cap above it: the same shape, truncated False.
+        r = client.post("/list", data={**cred, "prefix": "p/", "max_keys": 50})
+        body = r.json()
+        assert body["count"] == 7
+        assert body["truncated"] is False

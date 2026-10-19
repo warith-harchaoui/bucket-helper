@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-19
+
+### Added
+
+- **`list_prefix_page(prefix, cred, *, max_keys=1000) -> tuple[list[str], bool]`**
+  — the keys, plus whether S3 held more than `max_keys` of them under the
+  prefix.
+
+  `list_prefix` was already correct and honest about its cap, but nothing
+  downstream could tell whether the cap had been *reached*. `POST /list`
+  returned `{"keys": [...], "count": N}`, a payload byte-identical whether the
+  prefix holds exactly 1000 objects or fifty thousand — and `count`, being the
+  length of the response, reads naturally as "the number of objects under this
+  prefix". A program that lists a prefix and then acts on the result silently
+  operated on the first page. Both CLIs had the same gap: 1000 lines and stop,
+  with nothing to suggest more, so an `xargs` over the output quietly missed
+  objects.
+
+  `list_prefix_page` asks S3 for one key beyond the cap and reports whether it
+  arrived. That probe is what resolves the ambiguous case — "10 keys with
+  `max_keys=10`" could mean ten objects or the first ten of thousands — for the
+  cost of a single extra key.
+
+### Changed
+
+- **`POST /list` adds `truncated` to its payload**, alongside `keys` and
+  `count`.
+- **Both CLIs warn on stderr when a listing is truncated.** Keys stay on
+  stdout, so pipelines are unaffected.
+- **README / LISEZMOI** flag the cap in the listing example (which previously
+  taught `list_prefix` with no mention of it) and gain a section on
+  `list_prefix_page`.
+
+`list_prefix` itself is unchanged: returning a tuple would break every caller,
+and raising on truncation would break the legitimate "show me the first page"
+use.
+
 ## [1.1.2] - 2026-08-17
 
 ### Fixed

@@ -54,7 +54,7 @@ from . import (
     delete,
     download,
     exists,
-    list_prefix,
+    list_prefix_page,
     make_bucket,
     remote_tempfile,
     strip_s3_path,
@@ -237,9 +237,17 @@ def _handle_list(ns: argparse.Namespace) -> int:
     # list_prefix() returns a list of keys — emit them one per line so
     # shell pipelines can `xargs -n 1` over the result.
     cred = _load_cred(ns)
-    keys = list_prefix(prefix=ns.prefix, cred=cred, max_keys=ns.max_keys)
+    keys, truncated = list_prefix_page(prefix=ns.prefix, cred=cred, max_keys=ns.max_keys)
     for key in keys:
         _emit(key)
+    # Same contract as the click twin: keys on stdout, the caveat on stderr, so
+    # a capped listing cannot be mistaken for a complete one.
+    if truncated:
+        print(
+            f"warning: more than {ns.max_keys} keys under {ns.prefix!r}; "
+            "raise --max-keys to see the rest.",
+            file=sys.stderr,
+        )
     return 0
 
 

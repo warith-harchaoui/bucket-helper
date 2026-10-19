@@ -80,7 +80,7 @@ from . import (
     delete,
     download,
     exists,
-    list_prefix,
+    list_prefix_page,
     make_bucket,
     remote_tempfile,
     strip_s3_path,
@@ -390,8 +390,12 @@ def list_endpoint(
     # Resolve creds, page through the prefix, and return the keys plus a
     # convenience count so clients don't have to len() the list themselves.
     cred = _resolve_cred(locals())
-    keys = list_prefix(prefix=prefix, cred=cred, max_keys=max_keys)
-    return JSONResponse({"keys": keys, "count": len(keys)})
+    # `truncated` is the difference between "that is all of them" and "that is
+    # the first page". Without it a response of 1000 keys looks identical
+    # whether the prefix holds exactly 1000 objects or fifty thousand, and
+    # `count` -- the length of this response -- invites the wrong reading.
+    keys, truncated = list_prefix_page(prefix=prefix, cred=cred, max_keys=max_keys)
+    return JSONResponse({"keys": keys, "count": len(keys), "truncated": truncated})
 
 
 @app.post("/download", tags=["reads"])

@@ -215,3 +215,65 @@ def test_strip_s3_path_with_full_uri(s3_cred):
 
 def test_strip_s3_path_with_key_only(s3_cred):
     assert bh.strip_s3_path("path/to/obj", s3_cred) == "path/to/obj"
+
+
+# ---------------------------------------------------------------------------
+# A capped listing must say it was capped
+# ---------------------------------------------------------------------------
+# list_prefix() returns at most max_keys keys and cannot tell the caller whether
+# that was all of them. For a human that is a mild annoyance; for a program it
+# is a correctness problem, because a response of N keys looks identical whether
+# the prefix holds exactly N objects or fifty thousand. list_prefix_page() asks
+# S3 for one key beyond the cap: if it arrives, there is more behind it.
+
+
+def _seed(cred, n: int, prefix: str = "page/") -> None:
+    """Put ``n`` tiny objects under ``prefix``."""
+    import io
+
+    from bucket_helper.main import get_client_s3
+
+    with get_client_s3(cred) as s3:
+        for i in range(n):
+            s3.upload_fileobj(io.BytesIO(b"x"), cred["s3_bucket"], f"{prefix}{i:05d}")
+
+
+def test_list_prefix_page_reports_no_truncation_when_everything_fits(s3_cred):
+    _seed(s3_cred, 5)
+    keys, truncated = bh.list_prefix_page("page/", s3_cred, max_keys=10)
+    assert len(keys) == 5
+    assert truncated is False
+
+
+def test_list_prefix_page_reports_truncation(s3_cred):
+    _seed(s3_cred, 12)
+    keys, truncated = bh.list_prefix_page("page/", s3_cred, max_keys=10)
+    assert len(keys) == 10
+    assert truncated is True
+
+
+def test_exactly_at_the_cap_is_not_truncated(s3_cred):
+    """The ambiguous case, and the reason the extra key is probed at all.
+
+    Without the probe, "10 keys returned with max_keys=10" could mean either
+    exactly ten objects or the first ten of thousands.
+    """
+    _seed(s3_cred, 10)
+    keys, truncated = bh.list_prefix_page("page/", s3_cred, max_keys=10)
+    assert len(keys) == 10
+    assert truncated is False
+
+
+def test_one_past_the_cap_is_truncated(s3_cred):
+    _seed(s3_cred, 11)
+    keys, truncated = bh.list_prefix_page("page/", s3_cred, max_keys=10)
+    assert len(keys) == 10
+    assert truncated is True
+
+
+def test_list_prefix_page_agrees_with_list_prefix_on_the_keys(s3_cred):
+    """The new function must not change which keys come back, only report more."""
+    _seed(s3_cred, 12)
+    plain = bh.list_prefix("page/", s3_cred, max_keys=10)
+    paged, _ = bh.list_prefix_page("page/", s3_cred, max_keys=10)
+    assert paged == plain
