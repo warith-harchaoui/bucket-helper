@@ -27,13 +27,16 @@ classifiers = [
     "Topic :: System :: Archiving",
 ]
 dependencies = [
+    # click: the CLI is built with it and is the only command line this
+    # package has, so the dependency cannot be optional either. It used to
+    # sit in the [cli] extra beside an always-available argparse CLI.
+    "click>=8.1,<9",
     "os-helper>=2.0.0,<4",
     "boto3>=1.34,<2",
     "botocore>=1.34,<2",
 ]
 
 [project.optional-dependencies]
-# CLI-only-with-click extra. argparse variant needs no runtime dep and
 # FastAPI HTTP surface (bucket_helper.api). uvicorn + python-multipart
 # so multipart file uploads work out of the box.
 api = [
@@ -53,15 +56,15 @@ mcp = [
     "mcp>=1.12,<2",
 ]
 # `dev` keeps the bar low for CI — pytest + moto (in-process S3 mock)
-# + pyyaml (config loader) + httpx (FastAPI TestClient) + click
-# (so the click CLI import always resolves in tests) + fastapi + mcp (so the
-# MCP surface is actually exercised on every push, not silently skipped).
+# + pyyaml (config loader) + httpx (FastAPI TestClient) + fastapi + mcp (so
+# the MCP surface is actually exercised on every push, not silently skipped).
+# click is NOT listed here: it is a core dependency now, since the CLI it
+# builds is the only one this package has.
 dev = [
     "pytest>=8", "pytest-timeout>=2.3",
     "pyyaml>=6",
     "moto[s3]>=5",
     "httpx>=0.27",
-    "click>=8.1,<9",
     "fastapi>=0.111,<1",
     "python-multipart>=0.0.9,<1",
     "fastapi-mcp>=0.3,<1",
