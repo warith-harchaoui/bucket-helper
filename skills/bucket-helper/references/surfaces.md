@@ -23,9 +23,9 @@ intact rather than building a client by hand.
 
 Logging and file management route through `os_helper` — the suite convention.
 
-## 2. CLIs — argparse (core) and click (`[cli]`)
+## 2. CLI — click (core)
 
-`bucket-helper` and `bucket-helper-click`. See `cli-reference.md`.
+`bucket-helper`. See `cli-reference.md`.
 
 ## 3. HTTP API — FastAPI (`[api]`)
 

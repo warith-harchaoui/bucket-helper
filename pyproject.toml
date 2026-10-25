@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bucket-helper"
-version = "1.2.0"
-description = "Bucket Helper — utility functions for AWS S3 and any S3-compatible object storage (MinIO, Backblaze B2, DigitalOcean Spaces, Cloudflare R2, Wasabi, etc.) via boto3, exposed as library, argparse CLI, click CLI, and FastAPI HTTP surface. credentials() loader, upload / download / list / delete / exists / make_bucket / remote_tempfile."
+version = "1.3.0"
+description = "Bucket Helper — utility functions for AWS S3 and any S3-compatible object storage (MinIO, Backblaze B2, DigitalOcean Spaces, Cloudflare R2, Wasabi, etc.) via boto3, exposed as a library, a click CLI, and a FastAPI HTTP surface. credentials() loader, upload / download / list / delete / exists / make_bucket / remote_tempfile."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = {text = "BSD-3-Clause"}
@@ -27,15 +27,13 @@ classifiers = [
     "Topic :: System :: Archiving",
 ]
 dependencies = [
-    "os-helper>=2.0.0,<3",
+    "os-helper>=2.0.0,<4",
     "boto3>=1.34,<2",
     "botocore>=1.34,<2",
 ]
 
 [project.optional-dependencies]
 # CLI-only-with-click extra. argparse variant needs no runtime dep and
-# is always available.
-cli = ["click>=8.1,<9"]
 # FastAPI HTTP surface (bucket_helper.api). uvicorn + python-multipart
 # so multipart file uploads work out of the box.
 api = [
@@ -72,9 +70,7 @@ dev = [
 
 [project.scripts]
 # argparse-based CLI — no runtime dep beyond stdlib + core package.
-bucket-helper = "bucket_helper.cli_argparse:main"
-# click-based twin — install with [cli] extra.
-bucket-helper-click = "bucket_helper.cli_click:main"
+bucket-helper = "bucket_helper.cli:main"
 # HTTP API + MCP server — install with [mcp] extra.
 bucket-helper-mcp = "bucket_helper.mcp:main"
 

@@ -11,8 +11,7 @@ context manager for stage-and-share flows.
 Also exposes multi-surface entry points:
 
 - Library (this module) — the pure functions.
-- argparse CLI — :mod:`bucket_helper.cli_argparse` (``bucket-helper``).
-- click CLI     — :mod:`bucket_helper.cli_click` (``bucket-helper-click``).
+- CLI — :mod:`bucket_helper.cli` (``bucket-helper``), built with click.
 - FastAPI HTTP  — :mod:`bucket_helper.api` (``uvicorn bucket_helper.api:app``).
 
 Usage Example

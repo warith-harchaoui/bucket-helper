@@ -1,7 +1,7 @@
 # bucket-helper CLI reference
 
-Two CLIs over the same operations. `bucket-helper` (argparse) ships with the
-core package; `bucket-helper-click` (needs `[cli]`) is the click twin with the
+One CLI, `bucket-helper`, built with click and shipped with the core package,
+over the same operations the library and the HTTP surface expose, with the
 same subcommands and flags.
 
 ## Configuration

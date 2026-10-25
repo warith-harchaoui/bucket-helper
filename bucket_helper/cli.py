@@ -1,30 +1,28 @@
 """
 Bucket Helper — click-based command-line interface.
 
-Twin of :mod:`bucket_helper.cli_argparse`: same public surface (identical
-subcommand names, identical flag semantics), but implemented with
-:mod:`click` so users who already have a click-native shell setup
-(bash / zsh completion via ``click.shell_completion``, colored `--help`,
-nested command groups) can plug it in without friction. Installed as
-the ``bucket-helper-click`` entry point in ``pyproject.toml``.
+The one command-line surface, installed as the ``bucket-helper`` entry
+point. It used to be the optional twin of an argparse CLI, kept in
+lock-step by hand and reachable only under a ``-click`` suffix that named
+the parsing library rather than the interface; both are gone.
 
 Design notes
 ------------
-- Subcommands mirror ``bucket-helper`` (the argparse twin) so both CLIs
-  can be introspected identically by higher layers (FastAPI).
-- Flags reuse the argparse names (``--input`` / ``--key`` / …) rather
-  than the more idiomatic click positional style — consistency across
-  the two CLIs beats micro-idiomaticity here.
+- Flags keep the names the argparse door used (``--input`` / ``--key`` /
+  …) rather than the more idiomatic click positional style: a spelling
+  people already type is worth more than micro-idiomaticity.
+- Subcommand names are the ones the FastAPI surface introspects, so the
+  two doors cannot answer differently.
 - A library exception surfaces as a clean ``Error: ...`` line + exit 1
   (see :func:`main`), not a raw traceback; click's own control flow
   (usage errors, ``--help``) is untouched.
 
 Usage Example
 -------------
->>> #   bucket-helper-click upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
->>> #   bucket-helper-click download    --config settings.yaml --key folder/uploaded.txt --output local.txt
->>> #   bucket-helper-click list        --config settings.yaml --prefix folder/
->>> #   bucket-helper-click tempfile    --config settings.yaml --ext json --prefix runs
+>>> #   bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
+>>> #   bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output local.txt
+>>> #   bucket-helper list        --config settings.yaml --prefix folder/
+>>> #   bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
 
 Author
 ------
@@ -38,14 +36,9 @@ import sys
 from collections.abc import Callable
 from typing import Any
 
-try:
-    import click
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "The click CLI requires the [cli] extra. Install with: pip install 'bucket-helper[cli]'"
-    ) from exc
+import click
 
-# Same underlying functions as the argparse twin — one source of truth.
+# The same functions the library and the HTTP surface call — one source of truth.
 from . import (
     credentials,
     delete,
@@ -70,9 +63,12 @@ from . import (
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 100},
 )
-@click.version_option(package_name="bucket-helper", prog_name="bucket-helper-click")
+# ``-V`` beside ``--version``, as the argparse door offered. The version comes
+# from the installed distribution metadata because ``pyproject.toml`` is this
+# package's only version site — there is no ``__version__`` to drift from it.
+@click.version_option(None, "-V", "--version", prog_name="bucket-helper")
 def cli() -> None:
-    """Bucket Helper — click twin of the argparse CLI. Same subcommands."""
+    """Bucket Helper — S3-compatible object storage from the shell."""
     # Nothing to do at the group level — every subcommand carries its
     # own arguments and side effects.
 
@@ -256,7 +252,7 @@ def strip_path_cmd(config: str | None, address: str) -> None:
 
 
 def main() -> None:
-    """Console entry point (``bucket-helper-click``).
+    """Console entry point (``bucket-helper``).
 
     Click's own ``main()`` only special-cases ``ClickException``/``Abort``
     (and a broken pipe); a plain library exception (a boto3 ``ClientError``,

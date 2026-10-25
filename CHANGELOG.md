@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-25
+
+### Changed
+- **One command line, built with click.** `bucket-helper` now runs the click
+  implementation. The argparse CLI and the `bucket-helper-click` twin are both
+  gone, with the `[cli]` extra: `click` is a core dependency, the CLI no longer
+  being optional.
+
+  The suffix named the parsing library rather than the interface, and keeping
+  two front-ends meant writing each case twice so the pair could be checked for
+  drift. Parity was verified before the removal — by introspecting the
+  `ArgumentParser` and `click.Group` objects, not by diffing help text — and the
+  two doors agreed on all eight verbs and every flag.
+
+- `cli_click.py` is now `cli.py`; `cli_argparse.py` is deleted. The module no
+  longer guards `import click` behind a try/except with an install hint.
+- `os-helper` cap widened to `<4` (os-helper 3.0.0 dropped its own CLI).
+
+### Fixed
+- `--help` claimed the CLI was the "click twin of the argparse CLI", which
+  described a layout that no longer exists. It now says what the tool does.
+- `-V` had no short form, though the argparse door offered one.
+
+### Migration
+`bucket-helper-click <verb>` becomes `bucket-helper <verb>` — same verbs, same
+flags. `pip install "bucket-helper[cli]"` fails on the unknown extra; plain
+`pip install bucket-helper` carries the CLI.
+
 ## [1.2.0] - 2026-10-19
 
 ### Added

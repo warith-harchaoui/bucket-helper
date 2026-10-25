@@ -60,8 +60,8 @@ shares for logging and file handling; nothing here reinvents that layer.
   variables / `.env`, in that fallback order.
 - **`remote_tempfile`** context manager for stage-and-share flows: upload,
   hand back the object, auto-delete on block exit, no manual cleanup.
-- **Three surfaces, one behavior**: Python library, argparse CLI, click CLI
-  twin (`[cli]` extra), and FastAPI HTTP surface (`[api]` extra). See the
+- **Three surfaces, one behavior**: Python library, a click CLI, and a
+  FastAPI HTTP surface (`[api]` extra). See the
   [multi-surface section](#multi-surface-exposure).
 - **Docker image** ships the HTTP server ready to run.
 
@@ -82,7 +82,6 @@ We recommend using Python environments. Check this link if you're unfamiliar wit
 pip install bucket-helper
 
 # Optional surfaces
-pip install "bucket-helper[cli]"       # click-based CLI twin
 pip install "bucket-helper[api]"       # FastAPI HTTP surface
 ```
 
@@ -94,11 +93,10 @@ cd bucket-helper
 pip install -e .
 
 # Optional surfaces
-pip install -e ".[cli]"
 pip install -e ".[api]"
 ```
 
-The argparse CLI is always available. The `[cli]` extra adds the click twin.
+The CLI ships with the core install.
 
 ## Configuration
 
@@ -239,8 +237,7 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 
 Every public function in the library is also exposed as:
 
-- **argparse CLI**: `bucket-helper <subcommand>` (installed by default).
-- **click CLI**: `bucket-helper-click <subcommand>` (install `[cli]` extra).
+- **CLI**: `bucket-helper <subcommand>`, built with click (installed by default).
 - **FastAPI HTTP**: `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
 - **MCP**: `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
   any MCP-aware agent host (install `[mcp]` extra).
@@ -264,7 +261,6 @@ the test suite fails if a capability stops being named.
 ## CLI examples
 
 ```bash
-# argparse CLI (always available)
 bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
 bucket-helper exists      --config settings.yaml --key folder/uploaded.txt
 bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output back.txt
@@ -273,9 +269,6 @@ bucket-helper delete      --config settings.yaml --key folder/uploaded.txt
 bucket-helper make-bucket --config settings.yaml --bucket new-bucket
 bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
 bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
-
-# click CLI: same verbs, same flags
-bucket-helper-click upload --config settings.yaml --input local.txt --key folder/uploaded.txt
 ```
 
 ## HTTP server

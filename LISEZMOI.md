@@ -68,7 +68,7 @@ réinvente cette couche.
   retourne l'objet, suppression automatique à la sortie du bloc, aucun
   nettoyage manuel.
 - **Trois surfaces, un seul comportement** : bibliothèque Python, CLI
-  argparse, jumeau CLI click (extra `[cli]`) et surface HTTP FastAPI (extra
+  click et surface HTTP FastAPI (extra
   `[api]`). Voir la [section multi-surface](#exposition-multi-surfaces).
 - **Image Docker** livre le serveur HTTP prêt à l'emploi.
 
@@ -89,7 +89,6 @@ On recommande de travailler dans un environnement Python. Si vous ne savez pas e
 pip install bucket-helper
 
 # Surfaces optionnelles
-pip install "bucket-helper[cli]"       # variante CLI click
 pip install "bucket-helper[api]"       # surface HTTP FastAPI
 ```
 
@@ -101,11 +100,10 @@ cd bucket-helper
 pip install -e .
 
 # Surfaces optionnelles
-pip install -e ".[cli]"
 pip install -e ".[api]"
 ```
 
-La CLI argparse est toujours disponible. L'extra `[cli]` ajoute la variante click.
+La CLI est livrée avec l'installation de base.
 
 ## Configuration
 
@@ -246,8 +244,7 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 
 Chaque fonction publique de la bibliothèque est aussi exposée en :
 
-- **CLI argparse** : `bucket-helper <sous-commande>` (installée par défaut).
-- **CLI click** : `bucket-helper-click <sous-commande>` (nécessite l'extra `[cli]`).
+- **CLI** : `bucket-helper <sous-commande>`, construite avec click (installée par défaut).
 - **HTTP FastAPI** : `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (extra `[api]`).
 - **MCP** : `bucket-helper-mcp` expose la même surface HTTP comme outils MCP
   pour tout hôte agentique compatible (extra `[mcp]`).
@@ -272,7 +269,6 @@ nommée.
 ## Exemples CLI
 
 ```bash
-# CLI argparse (toujours disponible)
 bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
 bucket-helper exists      --config settings.yaml --key folder/uploaded.txt
 bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output back.txt
@@ -281,9 +277,6 @@ bucket-helper delete      --config settings.yaml --key folder/uploaded.txt
 bucket-helper make-bucket --config settings.yaml --bucket new-bucket
 bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
 bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
-
-# CLI click : mêmes verbes, mêmes flags
-bucket-helper-click upload --config settings.yaml --input local.txt --key folder/uploaded.txt
 ```
 
 ## Serveur HTTP

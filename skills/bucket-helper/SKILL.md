@@ -10,7 +10,7 @@ description: >-
   when the user says "upload this to S3 / my bucket / MinIO / R2 / B2",
   "download this object", "does this key exist", "list what is in this
   prefix", "delete this object", "create a bucket", "give me the public URL
-  for this file", or names `bucket-helper`, `bucket-helper-click`,
+  for this file", or names `bucket-helper`,
   `bucket-helper-mcp`, `import bucket_helper as bh`, `s3://`, `boto3`. Do NOT
   use for SFTP transfer (sftp-helper), plain local file management
   (os-helper), or downloading from a public media URL (youtube-helper).
@@ -45,7 +45,7 @@ there is no vendor default, no telemetry, no relay.
 ## Before anything: verify it is installed and configured
 
 ```bash
-bucket-helper --help                 # argparse CLI (ships with the package)
+bucket-helper --help                 # the CLI (ships with the package)
 python -c "import bucket_helper"     # library import check
 bucket-helper exists SOME_KEY        # proves credentials resolve and the endpoint answers
 ```
@@ -53,8 +53,7 @@ bucket-helper exists SOME_KEY        # proves credentials resolve and the endpoi
 Install:
 
 ```bash
-pip install bucket-helper                  # core: library + argparse CLI
-pip install 'bucket-helper[cli]'           # + the click twin
+pip install bucket-helper                  # core: library + click CLI
 pip install 'bucket-helper[api]'           # + FastAPI HTTP surface
 pip install 'bucket-helper[mcp]'           # + MCP tools over the same app
 ```

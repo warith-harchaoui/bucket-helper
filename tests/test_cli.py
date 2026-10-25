@@ -1,10 +1,15 @@
 """
-Smoke tests for the argparse and click CLIs.
+Smoke tests for the command line — one door now, built with click.
 
-These tests exercise the CLI *parsing* layer — that every subcommand is
-wired, every ``--help`` exits 0, and the two CLIs expose the same set of
-verbs. The full round-trip through moto-mocked S3 lives in
-``test_bucket_helper.py``.
+These exercise the *parsing* layer: every subcommand is wired, every
+``--help`` exits 0, and a library exception leaves the process as one
+clean ``Error: …`` line rather than a traceback. The full round-trip
+through moto-mocked S3 lives in ``test_bucket_helper.py``.
+
+There used to be two CLIs here — argparse plus an optional click twin —
+and every case was written twice so the pair could be checked for drift.
+The twin is the only CLI now, so each case is asserted once, against the
+thing that ships. ``click`` is a core dependency, so nothing is skipped.
 
 Usage Example
 -------------
@@ -18,16 +23,10 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 from __future__ import annotations
 
 import pytest
+from click.testing import CliRunner
 
-# The click CLI needs the ``click`` runtime dep, which lives in the
-# ``[cli]`` optional extra. Skip cleanly if it is not installed.
-click = pytest.importorskip("click")
-
-from click.testing import CliRunner  # noqa: E402
-
-# The canonical list of subcommands both CLIs must expose. Kept as a
-# module-level constant so a drift in either surface is caught by both
-# the argparse and click parametrised tests.
+# The verbs the CLI must expose. Kept as a module-level constant so a verb
+# quietly disappearing from the group fails here rather than in a user's shell.
 EXPECTED_SUBCOMMANDS = {
     "upload",
     "download",
@@ -40,90 +39,44 @@ EXPECTED_SUBCOMMANDS = {
 }
 
 
-def test_argparse_parser_builds_without_error():
-    """Building the parser should never fail (imports, subcommand wiring)."""
-    from bucket_helper.cli_argparse import build_parser
-
-    parser = build_parser()
-    # A parser with subcommands exposes them via a _SubParsersAction.
-    subparsers_action = next(
-        a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"
-    )
-    assert EXPECTED_SUBCOMMANDS.issubset(set(subparsers_action.choices.keys()))
-
-
-def test_argparse_help_exits_zero(capsys):
-    """``bucket-helper --help`` should exit with code 0 and print usage."""
-    from bucket_helper.cli_argparse import main
-
-    with pytest.raises(SystemExit) as exc:
-        main(["--help"])
-    assert exc.value.code == 0
-    captured = capsys.readouterr()
-    assert "bucket-helper" in captured.out.lower()
-
-
-@pytest.mark.parametrize("sub", sorted(EXPECTED_SUBCOMMANDS))
-def test_argparse_subcommand_help_exits_zero(sub):
-    """Every subcommand's ``--help`` should exit 0 (no wiring bug)."""
-    from bucket_helper.cli_argparse import main
-
-    with pytest.raises(SystemExit) as exc:
-        main([sub, "--help"])
-    assert exc.value.code == 0
-
-
-def test_click_group_has_expected_subcommands():
-    """The click group must expose the same subcommands as the argparse CLI."""
-    from bucket_helper.cli_click import cli
+def test_group_has_expected_subcommands():
+    """The click group exposes every verb the library promises."""
+    from bucket_helper.cli import cli
 
     assert EXPECTED_SUBCOMMANDS.issubset(set(cli.commands.keys()))
 
 
-def test_click_help_exits_zero():
-    """``bucket-helper-click --help`` should exit 0."""
-    from bucket_helper.cli_click import cli
+def test_help_exits_zero():
+    """``bucket-helper --help`` exits 0 and names itself."""
+    from bucket_helper.cli import cli
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["--help"])
+    result = CliRunner().invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "bucket helper" in result.output.lower()
 
 
 @pytest.mark.parametrize("sub", sorted(EXPECTED_SUBCOMMANDS))
-def test_click_subcommand_help_exits_zero(sub):
-    """Every click subcommand's ``--help`` should exit 0."""
-    from bucket_helper.cli_click import cli
+def test_subcommand_help_exits_zero(sub):
+    """Every subcommand's ``--help`` exits 0 — no wiring bug."""
+    from bucket_helper.cli import cli
 
-    runner = CliRunner()
-    result = runner.invoke(cli, [sub, "--help"])
+    result = CliRunner().invoke(cli, [sub, "--help"])
     assert result.exit_code == 0
 
 
-def test_argparse_main_prints_clean_error_not_traceback(capsys, monkeypatch):
-    """A library exception (malformed ``s3://`` URI) prints ``Error: ...`` +
-    returns 1, instead of propagating as a raw Python traceback."""
-    from bucket_helper.cli_argparse import main
+def test_main_prints_clean_error_not_traceback(monkeypatch, capsys):
+    """A library exception prints ``Error: …`` and exits 1, not a traceback.
 
-    for k in ("S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET", "S3_HTTPS"):
-        monkeypatch.setenv(k, "x")
-    code = main(["strip-path", "--address", "s3:///no-bucket-here"])
-    assert code == 1
-    captured = capsys.readouterr()
-    assert captured.err.startswith("Error: ")
-    assert "Traceback" not in captured.err
-
-
-def test_click_main_prints_clean_error_not_traceback(monkeypatch, capsys):
-    """Same guarantee as the argparse twin, for ``bucket-helper-click``'s
-    actual console-script entry point (``main()``, not the bare ``cli``
-    group — see its docstring for why the wrapper is needed)."""
-    from bucket_helper.cli_click import main
+    Drives ``main()`` — the real console-script entry point — rather than the
+    bare ``cli`` group, because the wrapper is exactly the layer that turns the
+    exception into one line on stderr. ``CliRunner.invoke(cli, …)`` bypasses it.
+    """
+    from bucket_helper.cli import main
 
     for k in ("S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET", "S3_HTTPS"):
         monkeypatch.setenv(k, "x")
     monkeypatch.setattr(
-        "sys.argv", ["bucket-helper-click", "strip-path", "--address", "s3:///no-bucket-here"]
+        "sys.argv", ["bucket-helper", "strip-path", "--address", "s3:///no-bucket-here"]
     )
     with pytest.raises(SystemExit) as exc:
         main()

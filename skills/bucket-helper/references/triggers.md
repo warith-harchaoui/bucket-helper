@@ -29,7 +29,7 @@ edit file contents.
 | Load credentials (JSON / YAML / .env / env) | *(implicit `--config`)* | `credentials` | *(request fields / `BUCKET_HELPER_CONFIG`)* |
 | Raw boto3 client (advanced) | — | `get_client_s3` | — |
 
-Every operation is also reachable through the click CLI (`bucket-helper-click …`,
+Every operation is also reachable through the CLI (`bucket-helper …`,
 same flags). There is **no GUI**.
 
 ## Natural-language phrasings that should fire
