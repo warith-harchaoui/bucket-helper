@@ -34,8 +34,8 @@ That remote reach is also where "battle-tested" has to mean something
 checkable, not a slogan. Every push runs a blocking CI gate: the test suite
 exercises the S3 client against a moto-mocked backend, then ruff checks
 style; nothing merges to `main` on a red run. The package has shipped
-through nine semantic-versioned releases on PyPI, from `v0.2.2` to the
-current `v1.1.2` (the tag history is visible with `git tag`). It depends
+through eleven semantic-versioned releases on PyPI, from `v0.2.2` to the
+current `v1.3.0` (the tag history is visible with `git tag`). It depends
 on `os-helper`, the small foundation package the whole AI Helpers suite
 shares for logging and file handling; nothing here reinvents that layer.
 
@@ -60,8 +60,8 @@ shares for logging and file handling; nothing here reinvents that layer.
   variables / `.env`, in that fallback order.
 - **`remote_tempfile`** context manager for stage-and-share flows: upload,
   hand back the object, auto-delete on block exit, no manual cleanup.
-- **Three surfaces, one behavior**: Python library, a click CLI, and a
-  FastAPI HTTP surface (`[api]` extra). See the
+- **Four surfaces, one behavior**: Python library, a click CLI, a FastAPI
+  HTTP surface (`[api]` extra), and an MCP server (`[mcp]` extra). See the
   [multi-surface section](#multi-surface-exposure).
 - **Docker image** ships the HTTP server ready to run.
 
@@ -83,6 +83,7 @@ pip install bucket-helper
 
 # Optional surfaces
 pip install "bucket-helper[api]"       # FastAPI HTTP surface
+pip install "bucket-helper[mcp]"       # MCP server (pulls [api] in)
 ```
 
 ### From source (no PyPI)
@@ -94,6 +95,7 @@ pip install -e .
 
 # Optional surfaces
 pip install -e ".[api]"
+pip install -e ".[mcp]"
 ```
 
 The CLI ships with the core install.
@@ -141,7 +143,7 @@ Set `s3_endpoint_url` to:
 | **Backblaze B2 (S3 API)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
 
-## Usage
+## Quick start
 
 For the full catalog of recipes (uploads / downloads / listings, S3-compatible endpoints such as MinIO / R2 / B2 / Spaces / Wasabi, temporary remote keys with auto-cleanup, mirroring with sftp-helper), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXAMPLES.md).
 
@@ -191,9 +193,9 @@ if truncated:
 ```
 
 It asks S3 for one key beyond the cap and reports whether it arrived, so the
-extra cost is a single key. The CLIs print a warning to **stderr** when a
-listing is truncated (keys stay on stdout, so pipelines are unaffected), and
-`POST /list` returns `truncated` alongside `keys` and `count`.
+extra cost is a single key. `bucket-helper list` prints a warning to **stderr**
+when a listing is truncated (keys stay on stdout, so pipelines are unaffected),
+and `POST /list` returns `truncated` alongside `keys` and `count`.
 
 ## MinIO example
 
@@ -235,14 +237,24 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 
 ## Multi-surface exposure
 
-Every public function in the library is also exposed as:
+The eight storage verbs — `upload`, `download`, `exists`, `list`, `delete`,
+`make-bucket`, `tempfile`, `strip-path` — are each reachable three ways
+beyond the Python functions themselves:
 
 - **CLI**: `bucket-helper <subcommand>`, built with click (installed by default).
 - **FastAPI HTTP**: `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
 - **MCP**: `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
   any MCP-aware agent host (install `[mcp]` extra).
 
-Both CLIs share the same subcommand names and flags; pick your favourite.
+There is one command line, built with click: the `bucket-helper-click` twin and
+the argparse implementation it shadowed were both removed in `v1.3.0`, and
+`bucket-helper-click <verb>` is now spelled `bucket-helper <verb>`. Its eight
+verb names are the ones the FastAPI surface introspects, so the two doors cannot
+answer differently.
+
+`credentials` and `get_client_s3` stay library-only, deliberately: one resolves
+secrets, the other hands back a live boto3 client. Neither belongs behind an
+HTTP endpoint.
 
 The exhaustive catalogue of what triggers the toolkit (natural-language
 phrasings, commands, functions, address cues, and explicit SKIP rules) lives in

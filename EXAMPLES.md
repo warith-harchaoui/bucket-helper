@@ -2,16 +2,16 @@
 
 Practical recipes for `bucket-helper` against **AWS S3 and any
 S3-compatible storage** (MinIO, Cloudflare R2, Backblaze B2, DigitalOcean
-Spaces, Wasabi, …). Every snippet assumes:
+Spaces, Wasabi, …). Every snippet below starts from the imports and the
+credentials source laid out in [Setup](#setup), so you can jump straight
+to the section you need.
 
-```python
-import bucket_helper as bh
-import os_helper as osh
-```
-
-and that you have a configuration source (`settings.yaml`, `.env`, or
-`S3_*` environment variables); see the README for the required keys
-and the per-provider endpoint table.
+Every call here reaches a bucket, which means every call needs
+credentials. Nothing below was run against real storage: the Python
+snippets were checked against the signatures in `bucket_helper/main.py`,
+so no output is shown for them. The captured output you do see is in
+[Command line](#command-line), where `--help` and `strip-path` answer
+without opening a connection.
 
 ---
 
@@ -25,6 +25,8 @@ and the per-provider endpoint table.
 6. [Temporary remote keys (auto-cleanup)](#temporary-remote-keys-auto-cleanup)
 7. [S3-compatible endpoints (MinIO / R2 / B2 / Spaces / Wasabi)](#s3-compatible-endpoints-minio--r2--b2--spaces--wasabi)
 8. [Combining with sftp-helper / os-helper](#combining-with-sftp-helper--os-helper)
+9. [Command line](#command-line)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -34,6 +36,26 @@ and the per-provider endpoint table.
 pip install --force-reinstall --no-cache-dir \
     bucket-helper
 ```
+
+The CLI ships with that core install. The HTTP surface and the MCP server
+are extras:
+
+```bash
+pip install "bucket-helper[api]"       # FastAPI HTTP surface
+pip install "bucket-helper[mcp]"       # MCP server (pulls [api] in)
+```
+
+Every Python snippet below assumes these two imports:
+
+```python
+import bucket_helper as bh
+import os_helper as osh
+```
+
+…and a configuration source holding at least `s3_access_key`,
+`s3_secret_key`, `s3_bucket` and `s3_https` — a `settings.yaml`, a
+`.env`, or the matching environment variables. See the README for the
+full key list and the per-provider endpoint table.
 
 Underneath, `bucket-helper` is a thin layer on top of
 [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
@@ -84,23 +106,41 @@ addresses; bare keys resolve under `cred["s3_bucket"]`.
 ```python
 if bh.exists("s3://my-bucket/invoices/2026/06.pdf", cred):
     print("invoice already uploaded")
-    # invoice already uploaded
 
 # Bare key form (resolves under cred["s3_bucket"])
 if bh.exists("invoices/2026/06.pdf", cred):
     print("same check, shorter")
-    # same check, shorter
 
-# List keys under a prefix (up to max_keys, default 1000)
+# List keys under a prefix (up to max_keys, default 1000).
+# Keys come back in S3's own lexicographic order, un-sorted client-side.
 for key in bh.list_prefix("invoices/2026/", cred, max_keys=200):
     print(key)
-    # invoices/2026/01.pdf
-    # invoices/2026/02.pdf
-    # ...
 ```
 
-For larger listings, drop down to the raw boto3 paginator via
-`bh.get_client_s3(cred)`.
+`list_prefix` stops at `max_keys` and cannot tell you whether it stopped
+early — 200 keys looks the same whether the prefix holds exactly 200
+objects or twenty thousand. When a program (rather than a human) acts on
+the list, ask for the extra bit:
+
+```python
+keys, truncated = bh.list_prefix_page("invoices/2026/", cred, max_keys=200)
+if truncated:
+    print("more than 200 invoices under that prefix; raise max_keys")
+```
+
+It asks S3 for one key beyond the cap and reports whether it arrived, so
+the extra cost is a single key.
+
+For larger listings still, drop down to the raw boto3 paginator via
+`bh.get_client_s3(cred)`, which is a context manager:
+
+```python
+with bh.get_client_s3(cred) as s3:
+    paginator = s3.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=cred["s3_bucket"], Prefix="invoices/"):
+        for obj in page.get("Contents") or []:
+            print(obj["Key"], obj["Size"])
+```
 
 ## Buckets: create on demand
 
@@ -160,13 +200,17 @@ Per-provider endpoint values are listed in the
 
 ## Combining with sftp-helper / os-helper
 
-Mirror an upload between AWS-style storage and an SFTP partner inbox:
+Mirror an upload between AWS-style storage and an SFTP partner inbox.
+`sftp-helper` is a separate package (`pip install sftp-helper`); one
+`settings.yaml` can carry both credential sets, because each loader only
+reads the keys it declares:
 
 ```python
 import os_helper as osh
 import bucket_helper as bh
 import sftp_helper as sftph
 
+# One knob for the whole suite's logging; both helpers route through it.
 osh.verbosity(2)
 
 s3_cred = bh.credentials("path/to/settings.yaml")
@@ -174,9 +218,76 @@ sftp_cred = sftph.credentials("path/to/settings.yaml")
 
 # Long-term archive on S3
 s3_uri = bh.upload("report.pdf", s3_cred, "reports/2026-06.pdf")
-# Mirror to SFTP partner
+# Mirror to the SFTP partner
 sftph.upload("report.pdf", sftp_cred, "/inbox/2026-06.pdf")
 
 print(f"Archived at {s3_uri}; delivered to SFTP partner.")
-# Archived at s3://my-bucket/reports/2026-06.pdf; delivered to SFTP partner.
 ```
+
+## Command line
+
+One command line, `bucket-helper`, built with click. Eight verbs, the
+same eight the HTTP surface exposes:
+
+```console
+$ bucket-helper --help
+Usage: bucket-helper [OPTIONS] COMMAND [ARGS]...
+
+  Bucket Helper — S3-compatible object storage from the shell.
+
+Options:
+  -V, --version  Show the version and exit.
+  -h, --help     Show this message and exit.
+
+Commands:
+  delete       Delete an S3 object (idempotent).
+  download     Download an S3 object to a local path.
+  exists       Return exit code 0 if the object exists, 1 otherwise.
+  list         List keys under a prefix in the default bucket.
+  make-bucket  Create a bucket (no-op if it already exists).
+  strip-path   Extract the key part of an 's3://bucket/key' address.
+  tempfile     Emit a unique random key + public URL (JSON).
+  upload       Upload a local file to S3.
+```
+
+Every verb takes `--config`, pointing at a `settings.yaml` (or a folder
+holding one); omit it to fall back to `.env` and the environment:
+
+```bash
+bucket-helper upload      --config settings.yaml --input local.txt --key folder/uploaded.txt
+bucket-helper exists      --config settings.yaml --key folder/uploaded.txt
+bucket-helper download    --config settings.yaml --key folder/uploaded.txt --output back.txt
+bucket-helper list        --config settings.yaml --prefix folder/ --max-keys 200
+bucket-helper delete      --config settings.yaml --key folder/uploaded.txt
+bucket-helper make-bucket --config settings.yaml --bucket new-bucket
+bucket-helper tempfile    --config settings.yaml --ext json --prefix runs
+bucket-helper strip-path  --config settings.yaml --address s3://my-bucket/path/to/obj
+```
+
+`strip-path` is pure string work, so it is the one verb that answers
+without touching the network — here with the credentials coming from the
+environment rather than a file, hence no `--config`:
+
+```console
+$ bucket-helper strip-path --address s3://my-bucket/path/to/obj
+path/to/obj
+```
+
+Two behaviours worth knowing before you put these in a script:
+
+- `exists` prints `true` / `false` **and** exits 1 when the object is
+  absent, so `if bucket-helper exists …; then` works directly.
+- `list` caps at `--max-keys` (1000 by default) and, when it hits the
+  cap, prints a warning to **stderr** while the keys stay on stdout —
+  a pipe is unaffected, and an `xargs` over the output no longer
+  silently misses objects.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `RuntimeError: Missing required keys for 'S3' configuration in files, .env files, or environment variables.` | no source resolved all four required keys — the message does not say which one is missing | point `--config` at the file, or export `s3_access_key`, `s3_secret_key`, `s3_bucket` and `s3_https` |
+| Requests to a MinIO behind a custom domain fail to authenticate | the default addressing is virtual-hosted (`bucket.endpoint/key`); that deployment wants `endpoint/bucket/key` | set `s3_use_path_style: "true"` |
+| TLS verification fails against a development MinIO | self-signed certificate | set `s3_verify_ssl: "false"` — for a host you control, and nowhere else |
+| `ModuleNotFoundError: No module named 'bucket_helper.cli_argparse'` | a `bucket-helper` console script left behind by a pre-`v1.3.0` install, pointing at a module that no longer exists | reinstall: `pip install --force-reinstall bucket-helper` |
+| A listing returns exactly `--max-keys` keys and you cannot tell if that was all | `list_prefix` does not report its own cap | use `list_prefix_page`, or read the stderr warning `bucket-helper list` prints |

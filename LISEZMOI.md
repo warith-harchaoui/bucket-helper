@@ -38,8 +38,8 @@ Cette portée distante est justement l'endroit où « éprouvé en production »
 doit se vérifier, pas se proclamer. Une CI bloquante tourne à chaque envoi :
 la suite de tests exerce le client S3 contre un S3 simulé par moto, puis
 ruff vérifie le style ; rien ne fusionne sur `main` si le passage est rouge.
-Le paquet a déjà connu neuf versions sémantiques publiées sur PyPI, de
-`v0.2.2` jusqu'à la `v1.1.2` actuelle (l'historique complet se lit avec
+Le paquet a déjà connu onze versions sémantiques publiées sur PyPI, de
+`v0.2.2` jusqu'à la `v1.3.0` actuelle (l'historique complet se lit avec
 `git tag`). Il dépend d'`os-helper`, le petit socle commun à toute la suite
 AI Helpers pour la journalisation et la gestion de fichiers ; rien ici ne
 réinvente cette couche.
@@ -67,9 +67,9 @@ réinvente cette couche.
 - **Context manager `remote_tempfile`** pour le stage-and-share : upload,
   retourne l'objet, suppression automatique à la sortie du bloc, aucun
   nettoyage manuel.
-- **Trois surfaces, un seul comportement** : bibliothèque Python, CLI
-  click et surface HTTP FastAPI (extra
-  `[api]`). Voir la [section multi-surface](#exposition-multi-surfaces).
+- **Quatre surfaces, un seul comportement** : bibliothèque Python, CLI click,
+  surface HTTP FastAPI (extra `[api]`) et serveur MCP (extra `[mcp]`). Voir la
+  [section multi-surface](#exposition-multi-surfaces).
 - **Image Docker** livre le serveur HTTP prêt à l'emploi.
 
 ## Installation
@@ -90,6 +90,7 @@ pip install bucket-helper
 
 # Surfaces optionnelles
 pip install "bucket-helper[api]"       # surface HTTP FastAPI
+pip install "bucket-helper[mcp]"       # serveur MCP (entraîne [api])
 ```
 
 ### Depuis les sources (sans PyPI)
@@ -101,6 +102,7 @@ pip install -e .
 
 # Surfaces optionnelles
 pip install -e ".[api]"
+pip install -e ".[mcp]"
 ```
 
 La CLI est livrée avec l'installation de base.
@@ -148,7 +150,7 @@ Mettez `s3_endpoint_url` à :
 | **Backblaze B2 (API S3)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
 
-## Utilisation
+## Prise en main rapide
 
 Pour le catalogue complet d'exemples (uploads / téléchargements / listages, endpoints S3-compatibles tels que MinIO / R2 / B2 / Spaces / Wasabi, clés distantes temporaires à nettoyage automatique, miroir avec sftp-helper), voir [📋 EXEMPLES.md](https://github.com/warith-harchaoui/bucket-helper/blob/main/EXEMPLES.md).
 
@@ -199,10 +201,10 @@ if tronque:
 ```
 
 La fonction demande à S3 une clé au-delà du plafond puis indique si elle est
-arrivée : le surcoût est d'une seule clé. Les CLI émettent un avertissement sur
-**stderr** quand un listing est tronqué (les clés restent sur stdout, les
-pipelines ne changent pas) et `POST /list` renvoie `truncated` à côté de `keys`
-et `count`.
+arrivée : le surcoût est d'une seule clé. `bucket-helper list` émet un
+avertissement sur **stderr** quand un listing est tronqué (les clés restent sur
+stdout, les pipelines ne changent pas) et `POST /list` renvoie `truncated` à
+côté de `keys` et `count`.
 
 ## Exemple MinIO
 
@@ -242,14 +244,25 @@ with bh.remote_tempfile(cred, ext="json", prefix="runs") as (s3_addr, public_url
 
 ## Exposition multi-surfaces
 
-Chaque fonction publique de la bibliothèque est aussi exposée en :
+Les huit verbes de stockage — `upload`, `download`, `exists`, `list`,
+`delete`, `make-bucket`, `tempfile`, `strip-path` — sont chacun joignables
+de trois façons au-delà des fonctions Python elles-mêmes :
 
 - **CLI** : `bucket-helper <sous-commande>`, construite avec click (installée par défaut).
 - **HTTP FastAPI** : `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (extra `[api]`).
 - **MCP** : `bucket-helper-mcp` expose la même surface HTTP comme outils MCP
   pour tout hôte agentique compatible (extra `[mcp]`).
 
-Les deux CLI partagent les mêmes noms de sous-commandes et de flags ; prenez celle que vous préférez.
+Il n'y a qu'une seule ligne de commande, construite avec click : le jumeau
+`bucket-helper-click` et l'implémentation argparse qu'il doublait ont disparu en
+`v1.3.0` ; `bucket-helper-click <verbe>` s'écrit désormais
+`bucket-helper <verbe>`. Ses huit noms de verbes sont ceux que la surface
+FastAPI introspecte, si bien que les deux portes ne peuvent pas répondre
+différemment.
+
+`credentials` et `get_client_s3` restent réservées à la bibliothèque, à
+dessein : l'une résout des secrets, l'autre rend un client boto3 vivant.
+Aucune des deux n'a sa place derrière un endpoint HTTP.
 
 Le catalogue exhaustif de ce qui déclenche la boîte à outils (formulations en
 langage naturel, commandes, fonctions, indices d'adresse, règles SKIP

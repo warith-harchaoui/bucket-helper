@@ -66,14 +66,15 @@ backends de stockage, sous une seule API en forme de dict ; (b) le
 context manager `remote_tempfile` supprime le piège « ai-je oublié de
 supprimer ce blob S3 ? » en déposant un fichier sous une clé aléatoire
 unique qui s'auto-supprime à la sortie du bloc ; (c) les surfaces
-multiples (CLI argparse + CLI click + HTTP FastAPI) sont
-partagées avec le reste de la famille AI-Helpers, mêmes signatures,
-aucune dérive.
+multiples (une CLI click + HTTP FastAPI + outils MCP) sont partagées avec
+le reste de la famille AI-Helpers, mêmes signatures, aucune dérive.
 
-Deux lignes sont notées `n/a` sur certains critères dans les notes
-brutes et sont donc omises de la grille « en un coup d'œil » : le frère
-`sftp-helper` parle SFTP et non S3, de sorte que ses cellules
-multi-fournisseur et constructeur d'URL ne s'appliquent pas.
+Le frère `sftp-helper` est absent de la grille « en un coup d'œil », et
+c'est volontaire. Il parle SFTP plutôt que S3 : les colonnes
+multi-fournisseur et URL compatibles S3 n'ont rien à mesurer sur lui, le
+noter reviendrait à comparer deux métiers différents. Il reste la bonne
+réponse dès que le distant est un hôte SFTP — voir *Quand choisir quoi*
+ci-dessous.
 
 ## Quand choisir quoi
 
@@ -99,3 +100,50 @@ multi-fournisseur et constructeur d'URL ne s'appliquent pas.
   largement S3.
 - **`smart_open`** : on a seulement besoin de `open("s3://…")` et rien
   d'autre.
+- **`sftp-helper`** (hors grille) : le distant est un hôte SFTP, pas un
+  bucket. Rien ici ne l'atteindra — `bucket-helper` parle l'API S3 et
+  seulement l'API S3.
+
+## Sources et date de relevé
+
+**Relevé du 27 octobre 2026.**
+
+- **Ce que valent les étoiles.** Chaque colonne traduit la lecture propre
+  à ce document de l'adéquation d'un projet au créneau annoncé par
+  `bucket-helper` — la plomberie quotidienne du stockage objet pour les
+  pipelines d'IA et de données — et non un banc d'essai. Aucun chiffre de
+  durée, de débit ou de mémoire n'a été mesuré, pas même pour la ligne
+  `bucket-helper`. Une note basse signifie « visé ailleurs », jamais
+  « plus lent ».
+- **Où vivent les chiffres.** La grille ci-dessus est générée depuis
+  [`assets/paysage.csv`](https://github.com/warith-harchaoui/bucket-helper/blob/main/assets/paysage.csv)
+  (anglais : `assets/landscape.csv`), que `gen_landscape.py` relit aussi
+  pour dessiner la carte de positionnement. On édite le CSV, pas le
+  tableau rendu.
+- **La ligne `bucket-helper`** a été notée en lisant ce dépôt en
+  `v1.3.0` : les huit verbes de la CLI, les huit endpoints HTTP
+  correspondants, les fonctions publiques réexportées par
+  `bucket_helper/__init__.py` ainsi que la liste de dépendances de
+  `pyproject.toml`.
+- **Les autres lignes** ont été notées depuis la documentation publiée par
+  chaque projet, sans passer par des notes de version ni par des
+  comparatifs tiers :
+  [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html),
+  [botocore](https://github.com/boto/botocore),
+  [minio-py](https://github.com/minio/minio-py),
+  [s3fs](https://github.com/fsspec/s3fs),
+  [cloudpathlib](https://github.com/drivendataorg/cloudpathlib),
+  [smart_open](https://github.com/piskvorky/smart_open),
+  [Apache Libcloud](https://libcloud.apache.org/),
+  [AWS CLI](https://github.com/aws/aws-cli),
+  [gsutil](https://cloud.google.com/storage/docs/gsutil),
+  [fsspec](https://github.com/fsspec/filesystem_spec).
+- **Aucun numéro de version n'est cité pour les autres projets**,
+  délibérément : dans un document que personne ne relit, une version de
+  concurrent épinglée est l'affirmation qui a le plus de chances d'être
+  fausse dans un an. Les notes décrivent la forme de chaque outil, qui
+  bouge beaucoup plus lentement.
+- **Une ligne est en mouvement.** La documentation de Google porte une
+  page [Transition from gsutil to gcloud storage](https://cloud.google.com/storage/docs/gsutil/gcloud-storage) :
+  la ligne `gsutil` décrit donc un outil dont l'éditeur éloigne ses
+  utilisateurs. À lire comme le client shell historique qu'il est.
