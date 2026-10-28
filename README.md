@@ -65,6 +65,10 @@ shares for logging and file handling; nothing here reinvents that layer.
   [multi-surface section](#multi-surface-exposure).
 - **Docker image** ships the HTTP server ready to run.
 
+## How it works
+
+![How bucket-helper works: credentials in, objects in the storage you chose out](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/diagrams/how-it-works.png)
+
 ## Installation
 
 **Prerequisites**: **Python 3.10–3.13** and **git**, cross-platform:

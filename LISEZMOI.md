@@ -72,6 +72,10 @@ réinvente cette couche.
   [section multi-surface](#exposition-multi-surfaces).
 - **Image Docker** livre le serveur HTTP prêt à l'emploi.
 
+## Comment ça marche
+
+![Comment bucket-helper fonctionne : des identifiants en entrée, des objets dans le stockage que vous avez choisi en sortie](https://raw.githubusercontent.com/warith-harchaoui/bucket-helper/main/assets/diagrams/comment-ca-marche.png)
+
 ## Installation
 
 **Prérequis** : **Python 3.10–3.13** et **git**, multiplateforme :
