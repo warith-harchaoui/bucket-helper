@@ -132,3 +132,15 @@ see *When to pick what* below.
   [Transition from gsutil to gcloud storage](https://cloud.google.com/storage/docs/gsutil/gcloud-storage)
   page, so the `gsutil` row describes a tool its vendor is steering users
   off. Read it as the historical shell client it is.
+
+## Ideas worth stealing
+
+Researched rather than guessed: what each neighbour does better, and what this library would have to change to match it. Nothing here is a commitment — it is the reading list the next version starts from.
+
+- **`obstore` — object storage is not a filesystem, so stop pretending** — Its central argument is worth more than its speed: `fsspec` presents a POSIX-shaped surface over stores that have no directories, no rename and no partial write, and the mismatch surfaces as surprising behaviour. Exposing only the operations the store natively supports is the honest API, and it is close to the one here.
+
+- **`obstore` — and the speed is real too** — Roughly 9× the throughput of fsspec and 2.8× aioboto3 for many concurrent small GETs from an async context, by wrapping the Rust `object_store` crate with no Python dependencies. For a member that moves many small objects, that is the headline number.
+
+- **`cloudpathlib` — a `Path` that happens to be remote** — `S3Path(...) / "sub" / "file.txt"` reads like the code around it. The operations here are correct; a pathlib-shaped face over them would cost little.
+
+- **`minio` — a real S3 to test against, locally** — Credentials and network are exactly what makes this member hard to test honestly. A local S3-compatible server in the test fixture turns mocked assertions into real round-trips.

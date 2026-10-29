@@ -147,3 +147,15 @@ ci-dessous.
   page [Transition from gsutil to gcloud storage](https://cloud.google.com/storage/docs/gsutil/gcloud-storage) :
   la ligne `gsutil` décrit donc un outil dont l'éditeur éloigne ses
   utilisateurs. À lire comme le client shell historique qu'il est.
+
+## Idées à reprendre
+
+Étudié plutôt que deviné : ce que chaque voisin fait mieux, puis ce que cette bibliothèque devrait changer pour l'égaler. Rien ici n'est un engagement : c'est la liste de lecture dont part la version suivante.
+
+- **`obstore` — un stockage objet n'est pas un système de fichiers : cessons de faire semblant** — Son argument central vaut plus que sa vitesse : `fsspec` présente une surface de forme POSIX au-dessus de magasins sans dossiers, sans renommage ni écriture partielle, puis l'inadéquation ressort en comportements surprenants. N'exposer que les opérations que le magasin gère nativement est l'API honnête, proche de celle d'ici.
+
+- **`obstore` — la vitesse est réelle elle aussi** — Environ 9× le débit de fsspec puis 2,8× celui d'aioboto3 pour de nombreux petits GET concurrents depuis un contexte asynchrone, en enveloppant le crate Rust `object_store` sans aucune dépendance Python. Pour un membre qui déplace beaucoup de petits objets, c'est le chiffre qui compte.
+
+- **`cloudpathlib` — un `Path` qui se trouve être distant** — `S3Path(...) / "sous-dossier" / "fichier.txt"` se lit comme le code autour. Les opérations d'ici sont justes ; une façade en forme de pathlib par-dessus coûterait peu.
+
+- **`minio` — un vrai S3 contre lequel tester, en local** — Les identifiants avec le réseau sont précisément ce qui rend ce membre difficile à tester honnêtement. Un serveur compatible S3 local dans le montage de test transforme des assertions simulées en véritables allers-retours.
