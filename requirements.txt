@@ -9,7 +9,8 @@
 # The os-helper pin is kept in lock-step with the release tag below.
 
 # --- Suite dependency -----------------------------------------------------
-os-helper>=1.5.3
+os-helper>=2.0.0,<5
 # --- Core runtime ---------------------------------------------------------
 boto3>=1.34,<2
 botocore>=1.34,<2
+click>=8.1,<9        # the CLI is click-built and not optional since the argparse door was dropped
