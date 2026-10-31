@@ -8,15 +8,9 @@
 
 Utility functions for **AWS S3** and any **S3-compatible object storage**: MinIO, Backblaze B2 S3 API, DigitalOcean Spaces, Cloudflare R2, Wasabi, and friends. Built on [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Same shape as [sftp-helper](https://github.com/warith-harchaoui/sftp-helper): a `credentials()` loader, the usual CRUD (`upload` / `download` / `delete` / `exists` / `list_prefix`), and a `remote_tempfile` context manager for stage-and-share flows.
 
-Object storage keeps files as flat, addressable blobs, a bucket plus a key
-such as `my-bucket/folder/file.txt`, instead of a nested folder tree on a
-hard drive: nothing to create in advance, no limit on how many files pile up
-in one place, and every object is reachable straight from a URL. Amazon Web
-Services built the first popular version of this, S3 (Simple Storage
-Service), and its wire protocol became the de facto standard: MinIO,
-Backblaze B2, DigitalOcean Spaces, Cloudflare R2, and Wasabi all speak the
-same S3 API, so `bucket-helper` runs unchanged against any of them; only the
-endpoint URL changes.
+Object storage keeps files as flat, addressable blobs — a bucket plus a key, such as `my-bucket/folder/file.txt` — instead of a nested folder tree on a hard drive. Nothing to create in advance, no limit on how many files pile up in one place, and every object reachable straight from a URL.
+
+Amazon Web Services built the first popular version of this, S3 (Simple Storage Service), and its wire protocol became the de facto standard. MinIO, Backblaze B2, DigitalOcean Spaces, Cloudflare R2 and Wasabi all speak the same S3 API, so `bucket-helper` runs unchanged against any of them. Only the endpoint URL changes.
 
 [🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
@@ -30,14 +24,11 @@ storage you choose*: AWS, or any S3-compatible endpoint you point it at
 local-first and ships **no GUI**. For a remote reached over SFTP instead of
 S3, use `sftp-helper`; for downloading media from a URL, use `youtube-helper`.
 
-That remote reach is also where "battle-tested" has to mean something
-checkable, not a slogan. Every push runs a blocking CI gate: the test suite
-exercises the S3 client against a moto-mocked backend, then ruff checks
-style; nothing merges to `main` on a red run. The package has shipped
-through eleven semantic-versioned releases on PyPI, from `v0.2.2` to the
-current `v1.3.0` (the tag history is visible with `git tag`). It depends
-on `os-helper`, the small foundation package the whole AI Helpers suite
-shares for logging and file handling; nothing here reinvents that layer.
+That remote reach is also where "battle-tested" has to mean something checkable rather than a slogan.
+
+Every push runs a blocking CI gate: the test suite exercises the S3 client against a moto-mocked backend, then ruff checks style. Nothing merges to `main` on a red run.
+
+The package has shipped through eleven semantic-versioned releases on PyPI, from `v0.2.2` to the current `v1.3.0` — the tag history is visible with `git tag`. It depends on `os-helper`, the small foundation package the whole AI Helpers suite shares for logging and file handling; nothing here reinvents that layer.
 
 ## Documentation
 

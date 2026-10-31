@@ -8,17 +8,9 @@
 
 Fonctions utilitaires pour **AWS S3** et tout **stockage objet compatible S3** : MinIO, Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi. Bâti sur [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Même forme que [sftp-helper](https://github.com/warith-harchaoui/sftp-helper) : un loader `credentials()`, les opérations CRUD habituelles (`upload` / `download` / `delete` / `exists` / `list_prefix`) et un context manager `remote_tempfile` pour le stage-and-share.
 
-Le stockage objet range les fichiers comme des blocs plats et adressables,
-un bucket plus une clé, par exemple `my-bucket/folder/file.txt`, plutôt que
-dans une arborescence de dossiers sur un disque dur : rien à créer à
-l'avance, aucune limite au nombre de fichiers qui s'accumulent au même
-endroit et chaque objet se retrouve directement depuis une URL. Amazon Web
-Services a construit la première version populaire de ce principe : le
-service de stockage simple (_Simple Storage Service_ ou S3), dont le
-protocole est devenu la norme de fait. MinIO, Backblaze B2, DigitalOcean
-Spaces, Cloudflare R2 et Wasabi parlent tous la même API S3 ; `bucket-helper`
-fonctionne donc sans changement contre n'importe lequel d'entre eux, seule
-l'URL du point de terminaison change.
+Le stockage objet range les fichiers comme des blocs plats puis adressables — un bucket avec une clé, par exemple `my-bucket/folder/file.txt` — plutôt que dans une arborescence de dossiers sur un disque dur. Rien à créer à l'avance, aucune limite au nombre de fichiers qui s'accumulent au même endroit, chaque objet accessible directement depuis une URL.
+
+Amazon Web Services a construit la première version populaire de ce principe : le service de stockage simple (_Simple Storage Service_, S3), dont le protocole est devenu la norme de fait. MinIO, Backblaze B2, DigitalOcean Spaces, Cloudflare R2 puis Wasabi parlent tous la même API S3. `bucket-helper` fonctionne donc sans changement contre n'importe lequel d'entre eux : seule l'URL du point de terminaison change.
 
 [🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
@@ -34,15 +26,11 @@ ne fournit **aucune interface graphique**. Pour un distant joint en SFTP
 plutôt qu'en S3, utilisez `sftp-helper` ; pour télécharger un média depuis une
 URL, utilisez `youtube-helper`.
 
-Cette portée distante est justement l'endroit où « éprouvé en production »
-doit se vérifier, pas se proclamer. Une CI bloquante tourne à chaque envoi :
-la suite de tests exerce le client S3 contre un S3 simulé par moto, puis
-ruff vérifie le style ; rien ne fusionne sur `main` si le passage est rouge.
-Le paquet a déjà connu onze versions sémantiques publiées sur PyPI, de
-`v0.2.2` jusqu'à la `v1.3.0` actuelle (l'historique complet se lit avec
-`git tag`). Il dépend d'`os-helper`, le petit socle commun à toute la suite
-AI Helpers pour la journalisation et la gestion de fichiers ; rien ici ne
-réinvente cette couche.
+Cette portée distante est justement l'endroit où « éprouvé en production » doit se vérifier plutôt que se proclamer.
+
+Une CI bloquante tourne à chaque envoi : la suite de tests exerce le client S3 contre un S3 simulé par moto, ensuite ruff vérifie le style. Rien ne fusionne sur `main` si le passage est rouge.
+
+Le paquet a déjà connu onze versions sémantiques publiées sur PyPI, de `v0.2.2` jusqu'à la `v1.3.0` actuelle — l'historique complet se lit avec `git tag`. Il dépend d'`os-helper`, le petit socle commun à toute la suite AI Helpers pour la journalisation puis la gestion de fichiers ; rien ici ne réinvente cette couche.
 
 ## Documentation
 
