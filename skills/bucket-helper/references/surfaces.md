@@ -7,16 +7,18 @@ import bucket_helper as bh
 ```
 
 Public API (`bucket_helper.__all__`): `credentials`, `get_client_s3`,
-`upload`, `download`, `delete`, `exists`, `list_prefix`, `make_bucket`,
-`remote_tempfile`, `strip_s3_path`.
+`upload`, `download`, `delete`, `exists`, `list_prefix`, `list_prefix_page`,
+`make_bucket`, `remote_tempfile`, `strip_s3_path`.
 
 ```python
-url = bh.upload("./report.pdf", "reports/2026/report.pdf")  # → public URL
-for key in bh.list_prefix("reports/2026/"):
+cred = bh.credentials("settings.yaml")
+uri = bh.upload("./report.pdf", cred, "reports/2026/report.pdf")  # → s3://bucket/key
+for key in bh.list_prefix("reports/2026/", cred):
     ...
+keys, truncated = bh.list_prefix_page("reports/", cred, max_keys=100)  # knows when it was cut
 ```
 
-`credentials()` returns the resolved config dict and `get_client_s3()` the
+`credentials()` returns the resolved config dict and `with get_client_s3(cred) as s3:` the
 underlying boto3 client — reach for the client only when you need an S3
 operation this package does not wrap, and keep the credential resolution path
 intact rather than building a client by hand.
@@ -31,7 +33,8 @@ Logging and file management route through `os_helper` — the suite convention.
 
 ```bash
 pip install 'bucket-helper[api]'
-python -m bucket_helper.api         # 127.0.0.1:8000, OpenAPI docs at /docs
+BUCKET_HELPER_CONFIG=$PWD/settings.yaml uvicorn bucket_helper.api:app --host 127.0.0.1 --port 8000
+# OpenAPI docs at /docs
 ```
 
 | Method | Route |
@@ -40,9 +43,11 @@ python -m bucket_helper.api         # 127.0.0.1:8000, OpenAPI docs at /docs
 | POST | `/upload`, `/download`, `/exists`, `/list` |
 | POST | `/delete`, `/make-bucket`, `/tempfile`, `/strip-path` |
 
-The server reads credentials from its own environment — it does **not** accept
-them per request, so an exposed port cannot be used to transfer someone else's
-keys. Bind it to `127.0.0.1` and keep it there.
+The server starts from the config named by `BUCKET_HELPER_CONFIG`, and each
+request may override any credential field (`s3_access_key`, `s3_secret_key`,
+`s3_bucket`, `s3_https`, ...) as a form field. Anyone who reaches the port can
+therefore act on the server's default bucket with the server's keys. Bind it
+to `127.0.0.1` and keep it there.
 
 ## 4. MCP — `fastapi-mcp` over the *same* app (`[mcp]`)
 

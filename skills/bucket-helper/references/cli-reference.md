@@ -25,19 +25,26 @@ print it, and neither should you.
 ## Transfer
 
 ```bash
-bucket-helper upload   LOCAL_PATH REMOTE_KEY [--bucket NAME] [--config PATH]
-bucket-helper download REMOTE_KEY LOCAL_PATH [--bucket NAME] [--config PATH]
+bucket-helper upload   --input LOCAL_PATH [--key REMOTE_KEY] [--content-type TYPE] [--config PATH]
+bucket-helper download --key REMOTE_KEY --output LOCAL_PATH [--config PATH]
 ```
 
-`upload` prints the public URL built from `s3_https` — that URL is the result
-worth reporting, not the local path. An upload to an existing key **overwrites
-it**; run `exists` first when that is a possibility.
+Every flag is named: no subcommand takes a positional argument. `--key`
+accepts a bare key (resolved against `s3_bucket`) or a full `s3://bucket/key`
+URI; the bucket is chosen that way, there is no `--bucket` flag on these
+commands.
+
+`upload` prints the `s3://bucket/key` URI of the object. Without `--key` it
+picks a random name under `s3_prefix`, keeping the file's extension. An upload
+to an existing key **overwrites it**; run `exists` first when that is a
+possibility. For a public `https://` URL, use `tempfile`, the one command that
+builds one from `s3_https`.
 
 ## Inspection
 
 ```bash
-bucket-helper exists REMOTE_KEY [--bucket NAME]
-bucket-helper list   PREFIX     [--bucket NAME] [--limit N]
+bucket-helper exists --key REMOTE_KEY [--config PATH]
+bucket-helper list   --prefix PREFIX [--max-keys N] [--config PATH]
 ```
 
 `list` matches by **string prefix**, not by directory: `a/b` also matches
@@ -46,8 +53,8 @@ bucket-helper list   PREFIX     [--bucket NAME] [--limit N]
 ## Mutation — confirm with the user first
 
 ```bash
-bucket-helper delete      REMOTE_KEY [--bucket NAME]
-bucket-helper make-bucket NAME
+bucket-helper delete      --key REMOTE_KEY [--config PATH]
+bucket-helper make-bucket --bucket NAME [--config PATH]
 ```
 
 Both change storage the user is paying for and neither is undoable. Name the
@@ -56,21 +63,29 @@ bucket and the exact key back to them before calling either.
 ## Utilities
 
 ```bash
-bucket-helper tempfile   [--suffix .wav] [--bucket NAME]   # a fresh remote key
-bucket-helper strip-path s3://bucket/some/key.ext          # → bucket, key
+bucket-helper tempfile   [--ext wav] [--prefix runs] [--config PATH]   # a fresh remote key
+bucket-helper strip-path --address s3://bucket/some/key.ext [--config PATH]   # → some/key.ext
 ```
 
-`tempfile` mints a collision-free key for pipeline intermediates.
-`strip-path` splits an `s3://` URL correctly, including keys containing
-slashes — use it instead of string surgery.
+`tempfile` mints a collision-free key for pipeline intermediates and prints
+it as JSON, `{"s3_address": ..., "public_url": ...}`, the URL built from
+`s3_https`. It uploads nothing. `strip-path` prints the key part of an
+`s3://` URL, slashes inside the key included — use it instead of string
+surgery.
 
 ## Output contract
 
-- `upload` prints the public object URL.
+- `upload` prints the `s3://bucket/key` URI of the object.
 - `download` prints the local path written.
-- `exists` prints `true` / `false` and exits `0` either way; a genuine failure
-  (bad credentials, unreachable endpoint) exits non-zero.
-- `list` prints one key per line.
+- `exists` prints `true` and exits `0`, or prints `false` and exits `1`, so it
+  works in a shell `if`. A genuine failure (bad credentials, unreachable
+  endpoint) prints one `Error: ...` line and exits `1` too: read the output,
+  not only the exit code.
+- `list` prints one key per line, capped at `--max-keys` (1000 by default),
+  with a warning on stderr when more keys exist.
+- `delete` and `make-bucket` print nothing; both are no-ops when the object is
+  already gone or the bucket already exists.
+- `tempfile` prints a JSON object; `strip-path` prints the key.
 - Failures are logged through `os_helper` and exit non-zero; a partial
   download is removed rather than left behind.
 
@@ -82,4 +97,5 @@ slashes — use it instead of string surgery.
 2. **404 / NoSuchKey** — confirm with `exists`; remember prefixes are
    case-sensitive and have no implicit directories.
 3. **Endpoint errors on a non-AWS provider** — MinIO, R2, B2 and Scaleway each
-   need their own endpoint URL in the config; the default is AWS.
+   need their own `s3_endpoint_url` in the config (plus `s3_use_path_style:
+   "true"` for most MinIO setups); empty means AWS.

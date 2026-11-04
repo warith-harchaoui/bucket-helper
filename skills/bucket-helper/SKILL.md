@@ -47,7 +47,7 @@ there is no vendor default, no telemetry, no relay.
 ```bash
 bucket-helper --help                 # the CLI (ships with the package)
 python -c "import bucket_helper"     # library import check
-bucket-helper exists SOME_KEY        # proves credentials resolve and the endpoint answers
+bucket-helper exists --key SOME_KEY  # proves credentials resolve and the endpoint answers
 ```
 
 Install:
@@ -77,22 +77,25 @@ it in, and keep it out of version control.
 Quick examples:
 
 ```bash
-bucket-helper upload ./report.pdf reports/2026/report.pdf
-bucket-helper exists reports/2026/report.pdf
-bucket-helper list  reports/2026/
-bucket-helper download reports/2026/report.pdf ./local.pdf
+bucket-helper upload --input ./report.pdf --key reports/2026/report.pdf
+bucket-helper exists --key reports/2026/report.pdf
+bucket-helper list --prefix reports/2026/
+bucket-helper download --key reports/2026/report.pdf --output ./local.pdf
 ```
 
 ```python
 import bucket_helper as bh
 
-url = bh.upload("./report.pdf", "reports/2026/report.pdf")  # public URL, from s3_https
-if bh.exists("reports/2026/report.pdf"):
-    bh.download("reports/2026/report.pdf", "./local.pdf")
+cred = bh.credentials("settings.yaml")  # or None: environment only
+uri = bh.upload("./report.pdf", cred, "reports/2026/report.pdf")  # s3://bucket/key
+if bh.exists("reports/2026/report.pdf", cred):
+    bh.download("reports/2026/report.pdf", "./local.pdf", cred)
 ```
 
-`upload` returns the public URL built from the configured `s3_https` base —
-that URL, not the local path, is what you report back to the user.
+`upload` returns the `s3://bucket/key` URI of the object, which is what you
+report back to the user. Every function after `credentials` takes the
+resolved `cred` dict. A public `https://` URL comes from `remote_tempfile`,
+the one call that builds it from `s3_https`.
 
 For the full flag matrix, the config keys and the output contract, read
 `references/cli-reference.md`. For the HTTP API and MCP tools, read
