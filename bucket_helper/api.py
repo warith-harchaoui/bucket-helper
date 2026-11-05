@@ -374,7 +374,10 @@ def exists_endpoint(
 
 @app.post("/list", tags=["reads"])
 def list_endpoint(
-    prefix: str = Form(..., description="Key prefix in the default bucket (may be empty)."),
+    # Optional with an empty default: a required Form field rejects "" (and a
+    # missing field) with a 422, so the whole bucket, which the CLI lists with
+    # --prefix "", could not be listed over HTTP.
+    prefix: str = Form("", description="Key prefix in the default bucket; empty lists it all."),
     max_keys: int = Form(1000, description="Cap on the number of returned keys."),
     s3_access_key: str | None = Form(None),
     s3_secret_key: str | None = Form(None),

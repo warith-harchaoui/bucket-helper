@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`POST /list` refused an empty prefix.** `prefix` was a required form
+  field, so `prefix=""` (or no field at all) came back 422, while
+  `bucket-helper list --prefix ""` lists the whole bucket. It now defaults to
+  `""` and lists the whole bucket.
+
 ## [1.3.1] - 2026-11-01
 
 ### Fixed

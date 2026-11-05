@@ -203,3 +203,37 @@ def test_list_response_declares_whether_it_was_truncated(client, monkeypatch):
         body = r.json()
         assert body["count"] == 7
         assert body["truncated"] is False
+
+
+def test_list_with_empty_or_absent_prefix_lists_the_whole_bucket(client, monkeypatch):
+    """``bucket-helper list --prefix ""`` lists the whole bucket; the HTTP
+    route must too. ``prefix`` was ``Form(...)``: an empty string or no field
+    at all came back 422 instead of the bucket's keys."""
+    import io
+
+    from moto import mock_aws
+
+    import bucket_helper as bh
+    from bucket_helper.main import get_client_s3
+
+    cred = {
+        "s3_access_key": "AKIAFAKEFAKEFAKEFAKE",
+        "s3_secret_key": "fakesecretfakesecretfakesecretfakesecret",
+        "s3_bucket": "whole-bucket",
+        "s3_https": "https://whole-bucket.s3.amazonaws.com",
+        "s3_region": "us-east-1",
+    }
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", cred["s3_access_key"])
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", cred["s3_secret_key"])
+    monkeypatch.setenv("AWS_DEFAULT_REGION", cred["s3_region"])
+
+    with mock_aws():
+        bh.make_bucket(cred["s3_bucket"], cred)
+        with get_client_s3(cred) as s3:
+            for key in ("a/1", "b/2", "top"):
+                s3.upload_fileobj(io.BytesIO(b"x"), cred["s3_bucket"], key)
+
+        for data in ({**cred, "prefix": ""}, cred):
+            r = client.post("/list", data=data)
+            assert r.status_code == 200, r.text
+            assert sorted(r.json()["keys"]) == ["a/1", "b/2", "top"]
