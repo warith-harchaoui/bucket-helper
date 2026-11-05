@@ -30,7 +30,7 @@ Cette portée distante est justement l'endroit où « éprouvé en production »
 
 Une CI bloquante tourne à chaque envoi : la suite de tests exerce le client S3 contre un S3 simulé par moto, ensuite ruff vérifie le style. Rien ne fusionne sur `main` si le passage est rouge.
 
-Le paquet a déjà connu douze versions sémantiques publiées sur PyPI, de `v0.2.2` jusqu'à la `v1.3.1` actuelle — l'historique complet se lit avec `git tag`. Il dépend d'`os-helper`, le petit socle commun à toute la suite AI Helpers pour la journalisation puis la gestion de fichiers ; rien ici ne réinvente cette couche.
+Le paquet a déjà connu treize versions sémantiques publiées sur PyPI, de `v0.2.2` jusqu'à la `v1.3.2` actuelle — l'historique complet se lit avec `git tag`. Il dépend d'`os-helper`, le petit socle commun à toute la suite AI Helpers pour la journalisation puis la gestion de fichiers ; rien ici ne réinvente cette couche.
 
 ## Documentation
 
