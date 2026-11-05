@@ -1,11 +1,14 @@
-# bucket-helper skill — exhaustive trigger catalogue
+# bucket-helper — exhaustive trigger catalogue
 
-Auditable superset of the phrasings that should fire this skill. The
-`description:` in `SKILL.md` is what a host model actually sees and is capped at
-1024 characters; this file carries the full list. Keep the two in sync — and
-keep this file in sync with the repo-root `TRIGGERS.md`, the user-facing
-catalogue it mirrors.
+The exhaustive catalogue of what `bucket-helper` does and of the natural-language
+phrasings, commands, functions and address cues that should invoke it, whether you
+call it yourself or drive it as an agent skill.
 
+It lives twice, byte-identical: `TRIGGERS.md` at the repo root for people, and
+`skills/bucket-helper/references/triggers.md` for the skill. `scripts/check_triggers.py`
+fails when the two drift apart. The `description:` in `SKILL.md` is what a host
+model actually sees and is capped at 1024 characters; this file is the
+auditable superset behind it, so keep the two in sync.
 
 `bucket-helper` moves files to and from **AWS S3 and any S3-compatible object
 storage** (MinIO, Cloudflare R2, Backblaze B2 S3 API, DigitalOcean Spaces,
@@ -24,9 +27,9 @@ edit file contents.
 | List keys under a prefix (and say if the cap cut it) | `bucket-helper list` | `list_prefix` / `list_prefix_page` | `POST /list` |
 | Delete an object (idempotent) | `bucket-helper delete` | `delete` | `POST /delete` |
 | Create a bucket (no-op if owned) | `bucket-helper make-bucket` | `make_bucket` | `POST /make-bucket` |
-| Unique random key + public URL, auto-clean | `bucket-helper tempfile` | `remote_tempfile` | `POST /tempfile` |
+| Unique random key + public URL (library: a `with` block that deletes the key on exit; CLI / API: mint the name only, nothing is uploaded) | `bucket-helper tempfile` | `remote_tempfile` | `POST /tempfile` |
 | Key part of an `s3://` address | `bucket-helper strip-path` | `strip_s3_path` | `POST /strip-path` |
-| Load credentials (JSON / YAML / .env / env) | *(implicit `--config`)* | `credentials` | *(request fields / `BUCKET_HELPER_CONFIG`)* |
+| Load credentials (JSON / YAML / .env / env) | *(`--config` on every subcommand)* | `credentials` | *(request fields / `BUCKET_HELPER_CONFIG`)* |
 | Raw boto3 client (advanced) | — | `get_client_s3` | — |
 
 Every API route is also an MCP tool, served by `bucket-helper-mcp` (`[mcp]`
