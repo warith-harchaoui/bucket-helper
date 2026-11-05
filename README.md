@@ -28,7 +28,7 @@ That remote reach is also where "battle-tested" has to mean something checkable 
 
 Every push runs a blocking CI gate: the test suite exercises the S3 client against a moto-mocked backend, then ruff checks style. Nothing merges to `main` on a red run.
 
-The package has shipped through thirteen semantic-versioned releases on PyPI, from `v0.2.2` to the current `v1.3.2` — the tag history is visible with `git tag`. It depends on `os-helper`, the small foundation package the whole AI Helpers suite shares for logging and file handling; nothing here reinvents that layer.
+The package has shipped through fourteen semantic-versioned releases on PyPI, from `v0.2.2` to the current `v1.3.3` — the tag history is visible with `git tag`. It depends on `os-helper`, the small foundation package the whole AI Helpers suite shares for logging and file handling; nothing here reinvents that layer.
 
 ## Documentation
 
