@@ -286,7 +286,7 @@ Two behaviours worth knowing before you put these in a script:
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `RuntimeError: Missing required keys for 'S3' configuration in files, .env files, or environment variables.` | no source resolved all four required keys — the message does not say which one is missing | point `--config` at the file, or export `s3_access_key`, `s3_secret_key`, `s3_bucket` and `s3_https` |
+| `Missing required keys for 'S3' configuration in files, .env files, or environment variables.` (a `RuntimeError` from the library, an `Error:` line from the CLI) | no source resolved all four required keys — the message does not say which one is missing | point `--config` at the file, or export `s3_access_key`, `s3_secret_key`, `s3_bucket` and `s3_https` |
 | Requests to a MinIO behind a custom domain fail to authenticate | the default addressing is virtual-hosted (`bucket.endpoint/key`); that deployment wants `endpoint/bucket/key` | set `s3_use_path_style: "true"` |
 | TLS verification fails against a development MinIO | self-signed certificate | set `s3_verify_ssl: "false"` — for a host you control, and nowhere else |
 | `ModuleNotFoundError: No module named 'bucket_helper.cli_argparse'` | a `bucket-helper` console script left behind by a pre-`v1.3.0` install, pointing at a module that no longer exists | reinstall: `pip install --force-reinstall bucket-helper` |

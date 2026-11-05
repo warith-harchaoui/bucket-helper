@@ -104,8 +104,8 @@ produce, so anything you demo in the GUI runs headless in CI.
 
 ## Stack
 
-- Front end: TypeScript + Svelte 5. No React, to match the `front-ui`
-  companion skill's stack.
+- Front end: vanilla JS + Tailwind CSS, the stack of the suite's
+  `sprezzature-ui` skill. No framework.
 - Back end: the FastAPI app already exists (`bucket_helper.api`) and
   covers 100 % of the operations. GUI is a client only, plus a small
   helper endpoint for HTTP-Range-based content previews.

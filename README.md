@@ -28,7 +28,7 @@ That remote reach is also where "battle-tested" has to mean something checkable 
 
 Every push runs a blocking CI gate: the test suite exercises the S3 client against a moto-mocked backend, then ruff checks style. Nothing merges to `main` on a red run.
 
-The package has shipped through eleven semantic-versioned releases on PyPI, from `v0.2.2` to the current `v1.3.0` — the tag history is visible with `git tag`. It depends on `os-helper`, the small foundation package the whole AI Helpers suite shares for logging and file handling; nothing here reinvents that layer.
+The package has shipped through twelve semantic-versioned releases on PyPI, from `v0.2.2` to the current `v1.3.1` — the tag history is visible with `git tag`. It depends on `os-helper`, the small foundation package the whole AI Helpers suite shares for logging and file handling; nothing here reinvents that layer.
 
 ## Documentation
 
@@ -45,10 +45,10 @@ The package has shipped through eleven semantic-versioned releases on PyPI, from
 - **CRUD** against AWS S3 or any S3-compatible endpoint: `upload`, `download`,
   `delete`, `exists`, `list_prefix`.
 - **Works against any S3-compatible provider**, MinIO, Backblaze B2 S3 API,
-  DigitalOcean Spaces, Cloudflare R2, Wasabi, by pointing the `endpoint_url`
+  DigitalOcean Spaces, Cloudflare R2, Wasabi, by pointing the `s3_endpoint_url`
   credential at it; no code changes per provider.
-- **Credentials loader** (`credentials`) resolving JSON / YAML / environment
-  variables / `.env`, in that fallback order.
+- **Credentials loader** (`credentials`) resolving a JSON / YAML file, then
+  `.env`, then environment variables, in that fallback order.
 - **`remote_tempfile`** context manager for stage-and-share flows: upload,
   hand back the object, auto-delete on block exit, no manual cleanup.
 - **Four surfaces, one behavior**: Python library, a click CLI, a FastAPI
@@ -121,9 +121,12 @@ Optional keys:
 |---|---|---|
 | `s3_region` | `"us-east-1"` | AWS region; mostly cosmetic for MinIO / R2 |
 | `s3_endpoint_url` | empty (= AWS S3) | Set this for S3-compatible backends: see table below |
-| `s3_prefix` | empty | Default key prefix added by `upload(...)` when no destination is given |
+| `s3_prefix` | empty | Default key prefix added by `upload(...)` when no destination is given, and by `remote_tempfile` |
 | `s3_use_path_style` | `"false"` | Force path-style addressing (`endpoint/bucket/key` instead of `bucket.endpoint/key`). Typical for MinIO with custom domains. |
 | `s3_verify_ssl` | `"true"` | Disable only for dev MinIO with self-signed certs |
+
+From the environment, every key is read under its upper-case name (`S3_BUCKET`,
+`S3_ENDPOINT_URL`) or exactly as written (`s3_bucket`).
 
 ## Endpoint URLs for common S3-compatible storage
 
@@ -145,7 +148,7 @@ For the full catalog of recipes (uploads / downloads / listings, S3-compatible e
 ```python
 import bucket_helper as bh
 
-# Load creds: JSON / YAML / env / .env (auto-fallback in that order)
+# Load creds: JSON / YAML file, then .env, then environment (auto-fallback in that order)
 cred = bh.credentials("path/to/settings.yaml")
 
 # Upload a local file
@@ -239,7 +242,9 @@ beyond the Python functions themselves:
 - **CLI**: `bucket-helper <subcommand>`, built with click (installed by default).
 - **FastAPI HTTP**: `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (install `[api]` extra).
 - **MCP**: `bucket-helper-mcp` exposes the same HTTP surface as MCP tools for
-  any MCP-aware agent host (install `[mcp]` extra).
+  any MCP-aware agent host (install `[mcp]` extra). It serves the API and the
+  MCP endpoint `/mcp` on `127.0.0.1:8000`; `BUCKET_HELPER_HOST` and
+  `BUCKET_HELPER_PORT` change that address.
 
 There is one command line, built with click: the `bucket-helper-click` twin and
 the argparse implementation it shadowed were both removed in `v1.3.0`, and
@@ -288,6 +293,12 @@ BUCKET_HELPER_CONFIG=$PWD/settings.yaml uvicorn bucket_helper.api:app --host 0.0
 
 Per-request credentials can also be sent as multipart form fields
 (`s3_access_key` / `s3_secret_key` / `s3_bucket` / `s3_https` / …).
+
+Routes: `GET /health`, then one `POST` per verb (`/upload`, `/download`,
+`/delete`, `/exists`, `/list`, `/make-bucket`, `/tempfile`, `/strip-path`),
+all taking form fields. Each answers JSON except `/download`, which streams the
+file back. A malformed `s3://` address or a missing credential returns 400; a
+failure on the S3 side returns 502.
 
 ## Docker
 

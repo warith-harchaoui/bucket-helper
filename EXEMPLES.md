@@ -55,7 +55,7 @@ import os_helper as osh
 …ainsi qu'une source de configuration portant au minimum
 `s3_access_key`, `s3_secret_key`, `s3_bucket` et `s3_https` : un
 `settings.yaml`, un `.env` ou les variables d'environnement
-correspondantes. Voir le README pour la liste complète des clés ainsi que
+correspondantes. Voir le LISEZMOI pour la liste complète des clés ainsi que
 le tableau des points d'accès par fournisseur.
 
 En dessous, `bucket-helper` est une fine couche par-dessus
@@ -76,7 +76,7 @@ cred = bh.credentials()
 Les clés optionnelles (`s3_region`, `s3_endpoint_url`, `s3_prefix`,
 `s3_use_path_style`, `s3_verify_ssl`) sont récupérées au mieux depuis les
 mêmes sources : voir le tableau des points d'accès par fournisseur dans le
-README.
+LISEZMOI.
 
 ## Envoyer / récupérer / supprimer
 
@@ -197,7 +197,7 @@ bh.upload("file.bin", cred, "file.bin")
 ```
 
 Les valeurs par fournisseur sont listées dans le
-[README](README.md#endpoint-urls-for-common-s3-compatible-storage).
+[LISEZMOI](LISEZMOI.md#urls-dendpoint-pour-les-stockages-s3-compatibles-courants).
 
 ## Composition avec sftp-helper / os-helper
 
@@ -289,7 +289,7 @@ Deux comportements à connaître avant de glisser tout cela dans un script :
 
 | Symptôme | Cause | Correctif |
 |---|---|---|
-| `RuntimeError: Missing required keys for 'S3' configuration in files, .env files, or environment variables.` | aucune source n'a résolu les quatre clés requises — le message ne dit pas laquelle manque | pointez `--config` sur le fichier ou exportez `s3_access_key`, `s3_secret_key`, `s3_bucket` et `s3_https` |
+| `Missing required keys for 'S3' configuration in files, .env files, or environment variables.` (une `RuntimeError` côté bibliothèque, une ligne `Error:` côté CLI) | aucune source n'a résolu les quatre clés requises — le message ne dit pas laquelle manque | pointez `--config` sur le fichier ou exportez `s3_access_key`, `s3_secret_key`, `s3_bucket` et `s3_https` |
 | Les requêtes vers un MinIO derrière un domaine custom échouent à l'authentification | l'adressage par défaut est virtual-hosted (`bucket.endpoint/key`), ce déploiement attend `endpoint/bucket/key` | réglez `s3_use_path_style: "true"` |
 | La vérification TLS échoue contre un MinIO de développement | certificat auto-signé | réglez `s3_verify_ssl: "false"` — pour un hôte que vous maîtrisez, nulle part ailleurs |
 | `ModuleNotFoundError: No module named 'bucket_helper.cli_argparse'` | un script `bucket-helper` laissé par une installation antérieure à la `v1.3.0`, qui pointe sur un module disparu | réinstallez : `pip install --force-reinstall bucket-helper` |

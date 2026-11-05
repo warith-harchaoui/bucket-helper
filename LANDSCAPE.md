@@ -106,8 +106,9 @@ see *When to pick what* below.
   never "slower".
 - **Where the numbers live.** The grid above is generated from
   [`assets/landscape.csv`](https://github.com/warith-harchaoui/bucket-helper/blob/main/assets/landscape.csv)
-  (French: `assets/paysage.csv`), which `gen_landscape.py` also reads to
-  draw the positioning map. Edit the CSV, not the rendered table.
+  (French: `assets/paysage.csv`), which the suite's `gen_landscape.py`
+  script (kept outside this repository) also reads to draw the
+  positioning map. Edit the CSV, not the rendered table.
 - **The `bucket-helper` row** was scored by reading this repository at
   `v1.3.0` — the eight CLI verbs, the eight matching HTTP endpoints, the
   public functions re-exported from `bucket_helper/__init__.py`, and the

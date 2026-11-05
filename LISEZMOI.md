@@ -30,7 +30,7 @@ Cette portée distante est justement l'endroit où « éprouvé en production »
 
 Une CI bloquante tourne à chaque envoi : la suite de tests exerce le client S3 contre un S3 simulé par moto, ensuite ruff vérifie le style. Rien ne fusionne sur `main` si le passage est rouge.
 
-Le paquet a déjà connu onze versions sémantiques publiées sur PyPI, de `v0.2.2` jusqu'à la `v1.3.0` actuelle — l'historique complet se lit avec `git tag`. Il dépend d'`os-helper`, le petit socle commun à toute la suite AI Helpers pour la journalisation puis la gestion de fichiers ; rien ici ne réinvente cette couche.
+Le paquet a déjà connu douze versions sémantiques publiées sur PyPI, de `v0.2.2` jusqu'à la `v1.3.1` actuelle — l'historique complet se lit avec `git tag`. Il dépend d'`os-helper`, le petit socle commun à toute la suite AI Helpers pour la journalisation puis la gestion de fichiers ; rien ici ne réinvente cette couche.
 
 ## Documentation
 
@@ -48,10 +48,10 @@ Le paquet a déjà connu onze versions sémantiques publiées sur PyPI, de `v0.2
   `upload`, `download`, `delete`, `exists`, `list_prefix`.
 - **Fonctionne avec n'importe quel fournisseur compatible S3** : MinIO,
   Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi, en
-  pointant l'identifiant `endpoint_url` dessus ; aucun changement de code par
+  pointant l'identifiant `s3_endpoint_url` dessus ; aucun changement de code par
   fournisseur.
-- **Chargeur d'identifiants** (`credentials`) résolvant JSON / YAML /
-  variables d'environnement / `.env`, dans cet ordre de repli.
+- **Chargeur d'identifiants** (`credentials`) résolvant un fichier JSON / YAML,
+  puis `.env`, puis les variables d'environnement, dans cet ordre de repli.
 - **Context manager `remote_tempfile`** pour le stage-and-share : upload,
   retourne l'objet, suppression automatique à la sortie du bloc, aucun
   nettoyage manuel.
@@ -125,9 +125,12 @@ Clés optionnelles :
 |---|---|---|
 | `s3_region` | `"us-east-1"` | Région AWS ; cosmétique pour MinIO / R2 |
 | `s3_endpoint_url` | vide (= AWS S3) | À renseigner pour les backends S3-compatibles : voir tableau ci-dessous |
-| `s3_prefix` | vide | Préfixe par défaut ajouté par `upload(...)` quand aucune destination n'est fournie |
+| `s3_prefix` | vide | Préfixe par défaut ajouté par `upload(...)` quand aucune destination n'est fournie, ainsi que par `remote_tempfile` |
 | `s3_use_path_style` | `"false"` | Forcer l'adressage path-style (`endpoint/bucket/key` plutôt que `bucket.endpoint/key`). Typique pour MinIO avec domaines custom. |
 | `s3_verify_ssl` | `"true"` | À désactiver uniquement en dev MinIO avec certs auto-signés |
+
+Dans l'environnement, chaque clé se lit sous son nom en majuscules (`S3_BUCKET`,
+`S3_ENDPOINT_URL`) ou tel quel (`s3_bucket`).
 
 ## URLs d'endpoint pour les stockages S3-compatibles courants
 
@@ -149,7 +152,7 @@ Pour le catalogue complet d'exemples (uploads / téléchargements / listages, en
 ```python
 import bucket_helper as bh
 
-# Charger les identifiants : JSON / YAML / env / .env (repli automatique dans cet ordre)
+# Charger les identifiants : fichier JSON / YAML, puis .env, puis environnement (repli automatique dans cet ordre)
 cred = bh.credentials("path/to/settings.yaml")
 
 # Uploader un fichier local
@@ -161,7 +164,7 @@ assert bh.exists(uri, cred)
 # Télécharger
 bh.download(uri, "downloaded.txt", cred)
 
-# Lister
+# Lister (au plus max_keys clés, 1000 par défaut)
 for key in bh.list_prefix("folder/", cred):
     print(key)
 
@@ -243,7 +246,9 @@ de trois façons au-delà des fonctions Python elles-mêmes :
 - **CLI** : `bucket-helper <sous-commande>`, construite avec click (installée par défaut).
 - **HTTP FastAPI** : `uvicorn bucket_helper.api:app --host 0.0.0.0 --port 8000` (extra `[api]`).
 - **MCP** : `bucket-helper-mcp` expose la même surface HTTP comme outils MCP
-  pour tout hôte agentique compatible (extra `[mcp]`).
+  pour tout hôte agentique compatible (extra `[mcp]`). Il sert l'API avec le
+  point MCP `/mcp` sur `127.0.0.1:8000` ; `BUCKET_HELPER_HOST` et
+  `BUCKET_HELPER_PORT` changent cette adresse.
 
 Il n'y a qu'une seule ligne de commande, construite avec click : le jumeau
 `bucket-helper-click` et l'implémentation argparse qu'il doublait ont disparu en
@@ -294,6 +299,12 @@ BUCKET_HELPER_CONFIG=$PWD/settings.yaml uvicorn bucket_helper.api:app --host 0.0
 
 Les identifiants peuvent aussi être passés en form-fields multipart par
 requête (`s3_access_key` / `s3_secret_key` / `s3_bucket` / `s3_https` / …).
+
+Routes : `GET /health`, puis un `POST` par verbe (`/upload`, `/download`,
+`/delete`, `/exists`, `/list`, `/make-bucket`, `/tempfile`, `/strip-path`),
+tous en champs de formulaire. Chacun répond en JSON sauf `/download`, qui renvoie
+le fichier en flux. Une adresse `s3://` mal formée ou un identifiant manquant
+donne 400 ; un échec côté S3 donne 502.
 
 ## Docker
 

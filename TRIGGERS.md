@@ -18,7 +18,7 @@ edit file contents.
 | Upload a local file (auto-key if omitted) | `bucket-helper upload` | `upload` | `POST /upload` |
 | Download an object to a local path | `bucket-helper download` | `download` | `POST /download` |
 | Check existence (exit 0/1) | `bucket-helper exists` | `exists` | `POST /exists` |
-| List keys under a prefix | `bucket-helper list` | `list_prefix` | `POST /list` |
+| List keys under a prefix (and say if the cap cut it) | `bucket-helper list` | `list_prefix` / `list_prefix_page` | `POST /list` |
 | Delete an object (idempotent) | `bucket-helper delete` | `delete` | `POST /delete` |
 | Create a bucket (no-op if owned) | `bucket-helper make-bucket` | `make_bucket` | `POST /make-bucket` |
 | Unique random key + public URL, auto-clean | `bucket-helper tempfile` | `remote_tempfile` | `POST /tempfile` |
@@ -26,8 +26,8 @@ edit file contents.
 | Load credentials (JSON / YAML / .env / env) | *(implicit `--config`)* | `credentials` | *(request fields / `BUCKET_HELPER_CONFIG`)* |
 | Raw boto3 client (advanced) | — | `get_client_s3` | — |
 
-Every operation is also reachable through the CLI (`bucket-helper …`,
-same flags). There is **no GUI**.
+Every API route is also an MCP tool, served by `bucket-helper-mcp` (`[mcp]`
+extra). There is **no GUI**.
 
 ## Natural-language phrasings that should fire
 

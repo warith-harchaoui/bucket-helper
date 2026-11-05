@@ -117,8 +117,9 @@ ci-dessous.
   « plus lent ».
 - **Où vivent les chiffres.** La grille ci-dessus est générée depuis
   [`assets/paysage.csv`](https://github.com/warith-harchaoui/bucket-helper/blob/main/assets/paysage.csv)
-  (anglais : `assets/landscape.csv`), que `gen_landscape.py` relit aussi
-  pour dessiner la carte de positionnement. On édite le CSV, pas le
+  (anglais : `assets/landscape.csv`), que le script `gen_landscape.py` de
+  la suite (tenu hors de ce dépôt) relit aussi pour dessiner la carte de
+  positionnement. On édite le CSV, pas le
   tableau rendu.
 - **La ligne `bucket-helper`** a été notée en lisant ce dépôt en
   `v1.3.0` : les huit verbes de la CLI, les huit endpoints HTTP

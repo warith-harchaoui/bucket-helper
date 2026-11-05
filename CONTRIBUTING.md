@@ -91,7 +91,7 @@ Releases live in [`CHANGELOG.md`](CHANGELOG.md) following the
 release is tagged `vX.Y.Z` in git, published as a GitHub release, and
 uploaded to PyPI.
 
-Cross-helper dependency pins (e.g. `os-helper>=2.0.0,<3`) are version
+Cross-helper dependency pins (e.g. `os-helper>=2.0.0,<5`) are version
 ranges resolved from PyPI, not git-tag pins.
 
 ## CI
@@ -100,7 +100,10 @@ GitHub Actions runs `pytest` on Python 3.12 (Linux) plus a blocking
 `ruff` lint job (`ruff check` and `ruff format --check`, pinned to a
 fixed ruff version for reproducibility). Integration tests are gated
 by `pytestmark = pytest.mark.integration` and skipped by default
-(`addopts = -m 'not integration'`).
+(`addopts = -m 'not integration'`). Two more jobs block: one installs
+the package on Python 3.10 and imports it (the `requires-python` floor),
+the other refuses any AI-vendor attribution in tracked files or commit
+messages.
 
 ## Running tests locally
 
