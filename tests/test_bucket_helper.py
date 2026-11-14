@@ -277,3 +277,28 @@ def test_list_prefix_page_agrees_with_list_prefix_on_the_keys(s3_cred):
     plain = bh.list_prefix("page/", s3_cred, max_keys=10)
     paged, _ = bh.list_prefix_page("page/", s3_cred, max_keys=10)
     assert paged == plain
+
+
+# ---------------------------------------------------------------------------
+# upload(if_absent=True): never overwrite
+# ---------------------------------------------------------------------------
+
+
+def test_upload_if_absent_writes_once_and_refuses_the_second(s3_cred, tmp_path):
+    first = tmp_path / "a.bin"
+    first.write_text("first")
+    second = tmp_path / "b.bin"
+    second.write_text("second")
+    uri = bh.upload(str(first), s3_cred, "blocks/abc", if_absent=True)
+    with pytest.raises(FileExistsError):
+        bh.upload(str(second), s3_cred, "blocks/abc", if_absent=True)
+    out = tmp_path / "out.bin"
+    bh.download(uri, str(out), s3_cred)
+    assert out.read_text() == "first", "the second write must not have replaced the first"
+
+
+def test_scaleway_endpoints():
+    assert bh.scaleway_endpoint() == "https://s3.fr-par.scw.cloud"
+    assert bh.scaleway_endpoint("pl-waw") == "https://s3.pl-waw.scw.cloud"
+    with pytest.raises(ValueError):
+        bh.scaleway_endpoint("us-east-1")

@@ -44,6 +44,7 @@ __all__ = [
     "list_prefix_page",
     "make_bucket",
     "remote_tempfile",
+    "scaleway_endpoint",
     "strip_s3_path",
 ]
 
@@ -57,6 +58,7 @@ from .main import (
     list_prefix_page,
     make_bucket,
     remote_tempfile,
+    scaleway_endpoint,
     strip_s3_path,
     upload,
 )

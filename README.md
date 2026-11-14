@@ -44,6 +44,9 @@ The package has shipped through fourteen semantic-versioned releases on PyPI, fr
 
 - **CRUD** against AWS S3 or any S3-compatible endpoint: `upload`, `download`,
   `delete`, `exists`, `list_prefix`.
+- **Write once, never overwrite**: `upload(..., if_absent=True)` sends an S3
+  conditional write (`If-None-Match: *`) and raises `FileExistsError` when the key
+  already holds an object — for content-addressed storage and racing writers.
 - **Works against any S3-compatible provider**, MinIO, Backblaze B2 S3 API,
   DigitalOcean Spaces, Cloudflare R2, Wasabi, by pointing the `s3_endpoint_url`
   credential at it; no code changes per provider.
@@ -140,6 +143,7 @@ Set `s3_endpoint_url` to:
 | **Cloudflare R2** | `https://<account_id>.r2.cloudflarestorage.com` |
 | **Backblaze B2 (S3 API)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
+| **Scaleway** | `https://s3.<region>.scw.cloud` (`fr-par`, `nl-ams`, `pl-waw`) — `scaleway_endpoint(region)` |
 
 ## Quick start
 

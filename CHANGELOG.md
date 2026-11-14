@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `upload(..., if_absent=True)`: write only if the key holds no object yet, never
+  overwrite. Sends an S3 conditional write (`If-None-Match: *`) so the server refuses a
+  second writer, after a first `exists` check so a provider that ignores the header
+  still does not replace an object that was already there; raises `FileExistsError`.
+  For content-addressed storage, where a key names exactly one content.
+- `scaleway_endpoint(region)` and the Scaleway rows in the provider docs: `fr-par`,
+  `nl-ams`, `pl-waw`.
+
 ## [1.3.3] - 2026-11-05
 
 ### Fixed

@@ -46,6 +46,9 @@ Le paquet a déjà connu quatorze versions sémantiques publiées sur PyPI, de `
 
 - **CRUD** contre AWS S3 ou tout point de terminaison compatible S3 :
   `upload`, `download`, `delete`, `exists`, `list_prefix`.
+- **Écrire une fois, ne jamais écraser** : `upload(..., if_absent=True)` envoie une
+  écriture conditionnelle S3 (`If-None-Match: *`) et lève `FileExistsError` quand la clé
+  porte déjà un objet ; pour un stockage adressé par le contenu et deux écrivains concurrents.
 - **Fonctionne avec n'importe quel fournisseur compatible S3** : MinIO,
   Backblaze B2 (API S3), DigitalOcean Spaces, Cloudflare R2, Wasabi, en
   pointant l'identifiant `s3_endpoint_url` dessus ; aucun changement de code par
@@ -144,6 +147,7 @@ Mettez `s3_endpoint_url` à :
 | **Cloudflare R2** | `https://<account_id>.r2.cloudflarestorage.com` |
 | **Backblaze B2 (API S3)** | `https://s3.<region>.backblazeb2.com` |
 | **Wasabi** | `https://s3.<region>.wasabisys.com` |
+| **Scaleway** | `https://s3.<region>.scw.cloud` (`fr-par`, `nl-ams`, `pl-waw`) — `scaleway_endpoint(region)` |
 
 ## Prise en main rapide
 

@@ -23,6 +23,9 @@ Anything that speaks the AWS S3 API works transparently — just set
 - **Cloudflare R2** : ``"https://<account_id>.r2.cloudflarestorage.com"``.
 - **Backblaze B2** (S3 API) : ``"https://s3.us-west-001.backblazeb2.com"``.
 - **Wasabi** : ``"https://s3.us-east-1.wasabisys.com"``.
+- **Scaleway** (Paris, Amsterdam, Warsaw) : ``"https://s3.fr-par.scw.cloud"``,
+  ``"https://s3.nl-ams.scw.cloud"``, ``"https://s3.pl-waw.scw.cloud"`` — or
+  :func:`scaleway_endpoint`.
 
 Usage Example
 -------------
@@ -240,8 +243,51 @@ def exists(s3_address: str, cred: dict) -> bool:
             raise
 
 
+#: Scaleway Object Storage regions and their S3 endpoints.
+SCALEWAY_REGIONS: tuple[str, ...] = ("fr-par", "nl-ams", "pl-waw")
+
+
+def scaleway_endpoint(region: str = "fr-par") -> str:
+    """The S3 endpoint of a Scaleway Object Storage region.
+
+    Parameters
+    ----------
+    region : str, optional
+        ``"fr-par"`` (Paris, default), ``"nl-ams"`` (Amsterdam) or ``"pl-waw"``
+        (Warsaw).
+
+    Returns
+    -------
+    str
+        The endpoint URL, to put in ``cred["s3_endpoint_url"]`` with
+        ``cred["s3_region"]`` set to the same region.
+
+    Raises
+    ------
+    ValueError
+        For a region Scaleway does not offer.
+
+    Examples
+    --------
+    >>> scaleway_endpoint()
+    'https://s3.fr-par.scw.cloud'
+    >>> scaleway_endpoint("nl-ams")
+    'https://s3.nl-ams.scw.cloud'
+    """
+    if region not in SCALEWAY_REGIONS:
+        raise ValueError(
+            f"Scaleway region {region!r} unknown; use one of {', '.join(SCALEWAY_REGIONS)}"
+        )
+    return f"https://s3.{region}.scw.cloud"
+
+
 def upload(
-    local_path: str, cred: dict, s3_address: str = "", content_type: str | None = None
+    local_path: str,
+    cred: dict,
+    s3_address: str = "",
+    content_type: str | None = None,
+    *,
+    if_absent: bool = False,
 ) -> str:
     """
     Upload a local file to S3.
@@ -260,6 +306,14 @@ def upload(
     content_type : str, optional
         Override the MIME ``Content-Type`` header. If None, boto3 lets the
         server default (typically ``application/octet-stream``).
+    if_absent : bool, optional
+        Write only if no object holds that key yet; never overwrite. For
+        content-addressed storage, where a key names exactly one content, and
+        for two writers racing to the same key. The request carries
+        ``If-None-Match: *`` (S3 conditional writes), so the server itself
+        refuses the second write; the key is also checked first, so a provider
+        that ignores the header still does not overwrite an object that was
+        already there (the race window then remains, and is the provider's).
 
     Returns
     -------
@@ -272,6 +326,8 @@ def upload(
         If the upload fails (permissions, bucket missing, network).
     AssertionError
         If ``local_path`` does not exist or is empty.
+    FileExistsError
+        With ``if_absent=True``, when the key already holds an object.
     """
     osh.checkfile(local_path, msg=f"Local file not found / empty: {local_path}", check_empty=True)
 
@@ -293,6 +349,25 @@ def upload(
     # Stream with the shared suite progress bar (byte-scaled, auto-quiet on a
     # non-TTY). boto3 invokes the Callback with the byte delta per part, which is
     # exactly what ``tqdm.update`` expects — so ``bar.update`` wires in directly.
+    if if_absent:
+        uri = f"s3://{bucket}/{key}"
+        if exists(uri, cred):
+            raise FileExistsError(f"{uri} already exists; if_absent=True never overwrites")
+        with get_client_s3(cred) as s3, open(local_path, "rb") as body:
+            try:
+                s3.put_object(Bucket=bucket, Key=key, Body=body, IfNoneMatch="*", **extra_args)
+            except botocore.exceptions.ClientError as exc:
+                code = exc.response.get("Error", {}).get("Code", "")
+                status = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+                if code in ("PreconditionFailed", "ConditionalRequestConflict") or status in (
+                    409,
+                    412,
+                ):
+                    raise FileExistsError(f"{uri} was written by someone else first") from exc
+                raise
+        osh.info("S3 upload OK (if absent): %s → %s", local_path, uri)
+        return uri
+
     size = osh.size_file(local_path)
     with get_client_s3(cred) as s3, osh.progress_bar(total=size, desc=key) as bar:
         s3.upload_file(local_path, bucket, key, ExtraArgs=extra_args or None, Callback=bar.update)
