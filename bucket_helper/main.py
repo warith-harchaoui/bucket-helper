@@ -46,9 +46,13 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 
 from __future__ import annotations
 
+import atexit
 import contextlib
+import hashlib
 import os
 import secrets
+import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from urllib.parse import urlparse
@@ -96,6 +100,10 @@ def credentials(config_path: str | None = None) -> dict:
       virtual-hosted style).
     - ``s3_verify_ssl``   : ``"false"`` to disable TLS verification (use
       sparingly — e.g. dev MinIO with self-signed cert).
+    - ``s3_retry_mode``   : botocore retry mode, ``"standard"`` (default:
+      exponential backoff with full jitter and a retry quota) or
+      ``"adaptive"`` (also slows the send rate after throttling; AWS calls it
+      experimental).
 
     Returns
     -------
@@ -113,6 +121,7 @@ def credentials(config_path: str | None = None) -> dict:
         "s3_prefix",
         "s3_use_path_style",
         "s3_verify_ssl",
+        "s3_retry_mode",
     ):
         if opt in cred:
             continue
@@ -136,19 +145,103 @@ def _truthy(value: object) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
-@contextmanager
-def get_client_s3(cred: dict) -> Iterator[boto3.client]:
-    """
-    Open a boto3 S3 client honoring ``cred`` configuration.
+# ---------------------------------------------------------------------------
+# Pacing — one client reused, jittered gaps, SDK retries with full jitter.
+# ---------------------------------------------------------------------------
+#
+# Why this exists. Every call used to build a fresh client, so a loop of small
+# calls (an existence check per key, a delete per key) opened a new TLS
+# connection each time and fired requests back to back. Object stores throttle
+# that (S3 answers 503 SlowDown; S3-compatible hosts publish lower limits or
+# none), and a client that hammers a host until it is throttled is at fault,
+# not the host. Applied here once so no caller has to remember it:
+#
+# 1. One client per credential set, reused for the life of the process: its
+#    urllib3 pool keeps connections alive instead of a handshake per call, and
+#    its retry quota is shared instead of reset on every call.
+# 2. A random pause before every HTTP request, measured from the previous
+#    one, paginator pages and multipart parts included (a ``before-send``
+#    hook sees them all). Random, never fixed: fixed intervals line up across
+#    processes (AWS Architecture Blog, "Exponential Backoff and Jitter").
+# 3. Throttling and transient errors are retried by botocore's documented
+#    "standard" mode: exponential backoff with full jitter plus a retry quota
+#    that stops retry storms. ``s3_retry_mode: adaptive`` adds client-side
+#    rate limiting that slows down after throttling; AWS calls that mode
+#    experimental, so it is opt-in.
+#
+# Tunable without code: BUCKET_HELPER_PACE as "min,max" seconds ("0,0"
+# disables, e.g. for a bulk job against your own MinIO).
 
-    The client is configured per AWS S3 (no ``endpoint_url``) or per the
-    S3-compatible endpoint when ``cred["s3_endpoint_url"]`` is set.
 
-    Yields
-    ------
-    boto3.client
-        Ready-to-use S3 client.
-    """
+def _env_range(name: str, default: tuple[float, float]) -> tuple[float, float]:
+    """Read a ``"min,max"`` seconds range from the environment."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        low, high = (float(x) for x in raw.split(","))
+    except ValueError:
+        osh.warning(f"{name}={raw!r} is not 'min,max' seconds; using {default}")
+        return default
+    return (max(0.0, min(low, high)), max(0.0, low, high))
+
+
+_PACE = _env_range("BUCKET_HELPER_PACE", (0.3, 1.5))
+_RETRY_MODES = {"standard", "adaptive", "legacy"}
+_pace_lock = threading.Lock()
+_last_request: dict[str, float] = {}
+_clients: dict[tuple, boto3.client] = {}
+_clients_lock = threading.Lock()
+_rng = secrets.SystemRandom()
+
+
+def _wait_turn(host: str) -> None:
+    """Sleep until a random gap has passed since the last request to ``host``."""
+    low, high = _PACE
+    with _pace_lock:
+        last = _last_request.get(host)
+        if last is not None and high > 0:
+            remaining = last + _rng.uniform(low, high) - time.monotonic()
+            if remaining > 0:
+                time.sleep(remaining)
+        _last_request[host] = time.monotonic()
+
+
+def _pace_hook(request, **_kwargs) -> None:
+    """botocore ``before-send`` handler: pace every HTTP request per host."""
+    _wait_turn(urlparse(request.url).netloc)
+
+
+def _client_key(cred: dict) -> tuple:
+    """Everything that changes how a client talks to the store (never the secret itself)."""
+    secret_digest = hashlib.sha256(str(cred["s3_secret_key"]).encode("utf-8")).hexdigest()
+    return (
+        str(cred["s3_access_key"]),
+        secret_digest,
+        cred.get("s3_endpoint_url") or "",
+        cred.get("s3_region") or "us-east-1",
+        _truthy(cred.get("s3_use_path_style")),
+        "s3_verify_ssl" not in cred or _truthy(cred.get("s3_verify_ssl")),
+        str(cred.get("s3_retry_mode") or "standard"),
+    )
+
+
+def _close_clients() -> None:
+    """Close every cached client's connection pool (at exit, or between tests)."""
+    with _clients_lock:
+        for client in _clients.values():
+            # Some boto3 versions raise on ``close()`` (a known quirk); a
+            # failed tidy-up must never mask anything.
+            with contextlib.suppress(Exception):  # pragma: no cover — boto3 quirk
+                client.close()
+        _clients.clear()
+
+
+atexit.register(_close_clients)
+
+
+def _build_client(cred: dict) -> boto3.client:
+    """Build one boto3 S3 client honoring ``cred``, with the pacing hook attached."""
     endpoint_url = cred.get("s3_endpoint_url")
     if osh.emptystring(endpoint_url):
         endpoint_url = None
@@ -162,10 +255,15 @@ def get_client_s3(cred: dict) -> Iterator[boto3.client]:
     if "s3_verify_ssl" in cred and not _truthy(cred.get("s3_verify_ssl")):
         verify_ssl = False
 
+    retry_mode = str(cred.get("s3_retry_mode") or "standard").strip().lower()
+    if retry_mode not in _RETRY_MODES:
+        osh.warning(f"s3_retry_mode={retry_mode!r} unknown; using 'standard'")
+        retry_mode = "standard"
+
     config = boto3.session.Config(
         signature_version="s3v4",
         s3={"addressing_style": addressing_style},
-        retries={"max_attempts": 5, "mode": "standard"},
+        retries={"max_attempts": 5, "mode": retry_mode},
     )
 
     client = boto3.client(
@@ -177,16 +275,32 @@ def get_client_s3(cred: dict) -> Iterator[boto3.client]:
         verify=verify_ssl,
         config=config,
     )
+    client.meta.events.register("before-send.s3", _pace_hook)
+    return client
 
-    try:
-        yield client
-    finally:
-        # boto3 clients are stateless wrt connections, but close the
-        # underlying urllib3 pool to be tidy. Some boto3 versions raise on
-        # ``close()`` (a known quirk), so we swallow any error here — a
-        # failed tidy-up must never mask the caller's real work.
-        with contextlib.suppress(Exception):  # pragma: no cover — boto3 quirk
-            client.close()
+
+@contextmanager
+def get_client_s3(cred: dict) -> Iterator[boto3.client]:
+    """
+    Yield the boto3 S3 client for ``cred``, built once and then reused.
+
+    The client is configured per AWS S3 (no ``endpoint_url``) or per the
+    S3-compatible endpoint when ``cred["s3_endpoint_url"]`` is set. It is
+    cached per credential set for the life of the process (boto3 clients are
+    thread-safe), so its connection pool and retry quota carry over from one
+    call to the next, and every request it sends is paced (see above).
+
+    Yields
+    ------
+    boto3.client
+        Ready-to-use S3 client. Do not close it: it is shared.
+    """
+    key = _client_key(cred)
+    with _clients_lock:
+        client = _clients.get(key)
+        if client is None:
+            client = _clients[key] = _build_client(cred)
+    yield client
 
 
 # ---------------------------------------------------------------------------

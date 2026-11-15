@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **One client per credential set, reused** by `get_client_s3` for the life of
+  the process: its connection pool stays open and its retry quota carries over,
+  where every call used to open a new client and a new TLS connection.
+- **Pacing on every HTTP request** (a botocore `before-send` hook, so
+  paginator pages and multipart parts count too): a random pause of 0.3 to
+  1.5 s per host, measured from the previous request. `BUCKET_HELPER_PACE`
+  (`"min,max"`, `"0,0"` disables) tunes it.
+- `s3_retry_mode`: `standard` stays the default (exponential backoff with full
+  jitter and a retry quota, AWS's documented choice); `adaptive` adds
+  client-side rate limiting after throttling and is opt-in, since AWS calls it
+  experimental.
 - `upload(..., if_absent=True)`: write only if the key holds no object yet, never
   overwrite. Sends an S3 conditional write (`If-None-Match: *`) so the server refuses a
   second writer, after a first `exists` check so a provider that ignores the header
