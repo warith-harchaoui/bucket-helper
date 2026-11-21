@@ -61,6 +61,7 @@ from . import (
 
 
 @click.group(
+    epilog="⭐️ on GitHub: https://github.com/warith-harchaoui/bucket-helper",
     context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 100},
 )
 # ``-V`` beside ``--version``, as the argparse door offered. The version comes

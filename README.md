@@ -8,6 +8,8 @@
 
 Utility functions for **AWS S3** and any **S3-compatible object storage**: MinIO, Backblaze B2 S3 API, DigitalOcean Spaces, Cloudflare R2, Wasabi, and friends. Built on [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). Same shape as [sftp-helper](https://github.com/warith-harchaoui/sftp-helper): a `credentials()` loader, the usual CRUD (`upload` / `download` / `delete` / `exists` / `list_prefix`), and a `remote_tempfile` context manager for stage-and-share flows.
 
+Drop a [⭐️](https://github.com/warith-harchaoui/bucket-helper) on GitHub if my help deserves it.
+
 Object storage keeps files as flat, addressable blobs — a bucket plus a key, such as `my-bucket/folder/file.txt` — instead of a nested folder tree on a hard drive. Nothing to create in advance, no limit on how many files pile up in one place, and every object reachable straight from a URL.
 
 Amazon Web Services built the first popular version of this, S3 (Simple Storage Service), and its wire protocol became the de facto standard. MinIO, Backblaze B2, DigitalOcean Spaces, Cloudflare R2 and Wasabi all speak the same S3 API, so `bucket-helper` runs unchanged against any of them. Only the endpoint URL changes.
