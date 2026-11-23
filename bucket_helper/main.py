@@ -49,6 +49,7 @@ from __future__ import annotations
 import atexit
 import contextlib
 import hashlib
+import logging
 import os
 import secrets
 import threading
@@ -60,6 +61,8 @@ from urllib.parse import urlparse
 import boto3
 import botocore.exceptions
 import os_helper as osh
+
+logger = logging.getLogger(__name__)
 
 # Diagnostics go through os-helper's logging surface (``osh.info`` /
 # ``osh.warning`` / ``osh.error``) rather than stdlib ``logging`` or bare
@@ -181,7 +184,7 @@ def _env_range(name: str, default: tuple[float, float]) -> tuple[float, float]:
     try:
         low, high = (float(x) for x in raw.split(","))
     except ValueError:
-        osh.warning(f"{name}={raw!r} is not 'min,max' seconds; using {default}")
+        logger.warning(f"{name}={raw!r} is not 'min,max' seconds; using {default}")
         return default
     return (max(0.0, min(low, high)), max(0.0, low, high))
 
@@ -257,7 +260,7 @@ def _build_client(cred: dict) -> boto3.client:
 
     retry_mode = str(cred.get("s3_retry_mode") or "standard").strip().lower()
     if retry_mode not in _RETRY_MODES:
-        osh.warning(f"s3_retry_mode={retry_mode!r} unknown; using 'standard'")
+        logger.warning(f"s3_retry_mode={retry_mode!r} unknown; using 'standard'")
         retry_mode = "standard"
 
     config = boto3.session.Config(
@@ -479,7 +482,7 @@ def upload(
                 ):
                     raise FileExistsError(f"{uri} was written by someone else first") from exc
                 raise
-        osh.info("S3 upload OK (if absent): %s → %s", local_path, uri)
+        logger.info("S3 upload OK (if absent): %s → %s", local_path, uri)
         return uri
 
     size = osh.size_file(local_path)
@@ -487,7 +490,7 @@ def upload(
         s3.upload_file(local_path, bucket, key, ExtraArgs=extra_args or None, Callback=bar.update)
 
     uri = f"s3://{bucket}/{key}"
-    osh.info("S3 upload OK: %s → %s", local_path, uri)
+    logger.info("S3 upload OK: %s → %s", local_path, uri)
     return uri
 
 
@@ -514,7 +517,7 @@ def download(s3_address: str, local_path: str, cred: dict) -> str:
     osh.checkfile(
         local_path, msg=f"Download failed (file missing or empty): {local_path}", check_empty=True
     )
-    osh.info("S3 download OK: s3://%s/%s → %s", bucket, key, local_path)
+    logger.info("S3 download OK: s3://%s/%s → %s", bucket, key, local_path)
     return local_path
 
 
@@ -529,7 +532,7 @@ def delete(s3_address: str, cred: dict) -> bool:
             s3.delete_object(Bucket=bucket, Key=key)
         except botocore.exceptions.ClientError as err:
             raise RuntimeError(f"Failed to delete S3 object s3://{bucket}/{key}: {err}") from err
-    osh.info("S3 delete OK: s3://%s/%s", bucket, key)
+    logger.info("S3 delete OK: s3://%s/%s", bucket, key)
     return True
 
 
@@ -615,11 +618,11 @@ def make_bucket(bucket: str, cred: dict) -> None:
                     Bucket=bucket,
                     CreateBucketConfiguration={"LocationConstraint": region},
                 )
-            osh.info("S3 bucket created: %s (region=%s)", bucket, region)
+            logger.info("S3 bucket created: %s (region=%s)", bucket, region)
         except botocore.exceptions.ClientError as err:
             code = err.response.get("Error", {}).get("Code", "")
             if code in {"BucketAlreadyOwnedByYou", "BucketAlreadyExists"}:
-                osh.info("S3 bucket already exists: %s", bucket)
+                logger.info("S3 bucket already exists: %s", bucket)
                 return
             raise
 
@@ -694,4 +697,4 @@ def remote_tempfile(
         try:
             delete(s3_address, cred)
         except Exception as err:  # pragma: no cover
-            osh.warning("S3 remote_tempfile cleanup failed for %s: %s", s3_address, err)
+            logger.warning("S3 remote_tempfile cleanup failed for %s: %s", s3_address, err)
